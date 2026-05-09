@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Restart Index — Civilization Knowledge Base</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inconsolata:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0d09;
+  --bg2: #16130e;
+  --surface: #1e1a13;
+  --card: #231f17;
+  --border: #3a3022;
+  --border2: #4d4030;
+  --gold: #c8922a;
+  --gold-light: #e8b84b;
+  --gold-dim: rgba(200,146,42,0.15);
+  --amber: #d4791a;
+  --green: #5a8a4a;
+  --green-light: #7ab85e;
+  --text: #e8dfc8;
+  --muted: #8a7d65;
+  --faint: #4a4030;
+  --red: #a04040;
+  --red-light: #c05858;
+  --blue: #4a7090;
+  --blue-light: #6a9ab0;
+  --phase0: #a04040;
+  --phase1: #c8922a;
+  --phase2: #5a8a4a;
+  --phase3: #4a7090;
+  --phase4: #7a5090;
+  --phase5: #c8922a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.5;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+header {
+  padding: 80px 60px 60px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+header::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+}
+.header-eyebrow {
+  font-family: 'Inconsolata', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-eyebrow::before, .header-eyebrow::after {
+  content: '';
+  height: 1px;
+  background: var(--gold);
+  flex: 1;
+  max-width: 60px;
+  opacity: 0.5;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -1px;
+  color: var(--text);
+  position: relative;
+}
+h1 em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+.header-sub {
+  margin-top: 28px;
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 600px;
+  font-style: italic;
+  line-height: 1.6;
+}
+.header-meta {
+  margin-top: 32px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.meta-item {
+  font-family: 'Inconsolata', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.meta-item span { color: var(--gold); }
+
+/* ─── PHASE NAVIGATION ───────────────────────────────────── */
+.phase-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 13, 9, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 60px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.phase-nav::-webkit-scrollbar { display: none; }
+.phase-btn {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 18px 20px 16px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+  position: relative;
+}
+.phase-btn:hover { color: var(--text); }
+.phase-btn.active { color: var(--text); }
+.phase-btn[data-phase="all"].active { border-bottom-color: var(--gold); }
+.phase-btn[data-phase="0"].active { border-bottom-color: var(--phase0); color: #e08080; }
+.phase-btn[data-phase="1"].active { border-bottom-color: var(--phase1); color: var(--gold-light); }
+.phase-btn[data-phase="2"].active { border-bottom-color: var(--phase2); color: var(--green-light); }
+.phase-btn[data-phase="3"].active { border-bottom-color: var(--phase3); color: var(--blue-light); }
+.phase-btn[data-phase="4"].active { border-bottom-color: var(--phase4); color: #b088d0; }
+.phase-btn[data-phase="5"].active { border-bottom-color: var(--phase5); color: var(--gold-light); }
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 200px);
+}
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 40px 0;
+  position: sticky;
+  top: 53px;
+  height: calc(100vh - 53px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.sidebar-section {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+.sidebar-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 12px;
+}
+.filter-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inconsolata', monospace;
+  font-size: 12px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 2px;
+  letter-spacing: 1px;
+}
+.filter-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.filter-btn.active { color: var(--gold-light); border-color: var(--border2); background: var(--gold-dim); }
+
+.scale-badge {
+  display: inline-block;
+  font-family: 'Inconsolata', monospace;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.scale-solo { background: rgba(160,64,64,0.2); color: #e08080; border: 1px solid rgba(160,64,64,0.3); }
+.scale-small { background: rgba(200,146,42,0.15); color: var(--gold-light); border: 1px solid rgba(200,146,42,0.3); }
+.scale-village { background: rgba(90,138,74,0.15); color: var(--green-light); border: 1px solid rgba(90,138,74,0.3); }
+.scale-city { background: rgba(74,112,144,0.15); color: var(--blue-light); border: 1px solid rgba(74,112,144,0.3); }
+
+/* ─── MAIN CONTENT ───────────────────────────────────────── */
+.content {
+  padding: 40px 60px 80px;
+  max-width: 960px;
+}
+
+/* ─── PHASE BLOCK ────────────────────────────────────────── */
+.phase-block {
+  margin-bottom: 80px;
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.phase-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.phase-number-large {
+  font-family: 'Playfair Display', serif;
+  font-size: 120px;
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.06;
+  position: absolute;
+  right: 0;
+  bottom: -10px;
+  letter-spacing: -5px;
+}
+.phase-tag {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 2px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+.phase-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+.phase-timeline {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+.phase-desc {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--muted);
+  font-style: italic;
+  max-width: 500px;
+}
+
+/* Phase color theming */
+[data-phase-color="0"] .phase-tag { background: rgba(160,64,64,0.2); color: #e08080; border: 1px solid rgba(160,64,64,0.3); }
+[data-phase-color="0"] .phase-number-large { color: var(--phase0); }
+[data-phase-color="1"] .phase-tag { background: rgba(200,146,42,0.15); color: var(--gold-light); border: 1px solid rgba(200,146,42,0.3); }
+[data-phase-color="1"] .phase-number-large { color: var(--phase1); }
+[data-phase-color="2"] .phase-tag { background: rgba(90,138,74,0.15); color: var(--green-light); border: 1px solid rgba(90,138,74,0.3); }
+[data-phase-color="2"] .phase-number-large { color: var(--phase2); }
+[data-phase-color="3"] .phase-tag { background: rgba(74,112,144,0.15); color: var(--blue-light); border: 1px solid rgba(74,112,144,0.3); }
+[data-phase-color="3"] .phase-number-large { color: var(--phase3); }
+[data-phase-color="4"] .phase-tag { background: rgba(122,80,144,0.15); color: #b088d0; border: 1px solid rgba(122,80,144,0.3); }
+[data-phase-color="4"] .phase-number-large { color: var(--phase4); }
+[data-phase-color="5"] .phase-tag { background: rgba(200,146,42,0.15); color: var(--gold-light); border: 1px solid rgba(200,146,42,0.3); }
+[data-phase-color="5"] .phase-number-large { color: var(--phase5); }
+
+/* ─── KNOWLEDGE CARDS ────────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2px;
+}
+.knowledge-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.knowledge-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+.knowledge-card.expanded { grid-column: span 2; }
+.card-top {
+  padding: 24px 24px 20px;
+}
+.card-domain-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.card-domain {
+  font-family: 'Inconsolata', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.card-scales {
+  display: flex;
+  gap: 4px;
+}
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.card-lead {
+  font-size: 15px;
+  color: var(--muted);
+  font-style: normal;
+  line-height: 1.65;
+}
+.card-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 24px;
+}
+.card-body {
+  padding: 20px 24px 24px;
+  display: none;
+}
+.knowledge-card.expanded .card-body { display: block; }
+
+.detail-section {
+  margin-bottom: 20px;
+}
+.detail-section:last-child { margin-bottom: 0; }
+.detail-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-label::after {
+  content: '';
+  height: 1px;
+  background: var(--border2);
+  flex: 1;
+}
+.detail-text {
+  font-size: 15.5px;
+  color: var(--text);
+  line-height: 1.75;
+}
+.detail-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.detail-list li {
+  font-size: 15.5px;
+  color: var(--text);
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.6;
+}
+.detail-list li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+}
+.detail-steps {
+  list-style: none;
+  counter-reset: steps;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.detail-steps li {
+  counter-increment: steps;
+  font-size: 15.5px;
+  color: var(--text);
+  padding-left: 28px;
+  position: relative;
+  line-height: 1.6;
+}
+.detail-steps li::before {
+  content: counter(steps, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  top: 4px;
+  font-weight: 600;
+}
+.scale-note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  padding: 12px 16px;
+  font-size: 14.5px;
+  color: var(--muted);
+  font-style: normal;
+  margin-top: 12px;
+  line-height: 1.6;
+}
+.scale-note strong { color: var(--gold-light); font-style: normal; }
+
+/* ─── DEPENDENCY SYSTEM ──────────────────────────────────── */
+.card-deps {
+  padding: 10px 24px 14px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.15);
+}
+.dep-group {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dep-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.dep-tag {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  white-space: nowrap;
+  cursor: default;
+}
+.dep-requires .dep-tag {
+  background: rgba(160,64,64,0.15);
+  color: #c07070;
+  border: 1px solid rgba(160,64,64,0.25);
+}
+.dep-enables .dep-tag {
+  background: rgba(90,138,74,0.12);
+  color: var(--green-light);
+  border: 1px solid rgba(90,138,74,0.2);
+}
+.dep-none {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--faint);
+  font-style: italic;
+}
+
+.card-toggle {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  text-align: center;
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.card-toggle:hover { color: var(--gold); background: var(--gold-dim); }
+
+/* ─── DOMAIN COLORS ──────────────────────────────────────── */
+.domain-water .card-title { color: #6aaad0; }
+.domain-fire .card-title { color: #e07040; }
+.domain-shelter .card-title { color: #a08060; }
+.domain-food .card-title { color: #90b050; }
+.domain-health .card-title { color: #d08080; }
+.domain-tools .card-title { color: #c0a060; }
+.domain-energy .card-title { color: #d0b040; }
+.domain-society .card-title { color: #a090d0; }
+.domain-hygiene .card-title { color: #80c0b0; }
+.domain-containers .card-title { color: #c89060; }
+.domain-navigation .card-title { color: #90a8c0; }
+
+/* ─── SEARCH ─────────────────────────────────────────────── */
+.search-bar {
+  padding: 24px 60px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.search-wrap {
+  position: relative;
+  max-width: 500px;
+}
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Inconsolata', monospace;
+  font-size: 13px;
+  padding: 12px 16px 12px 40px;
+  outline: none;
+  transition: border-color 0.2s;
+  letter-spacing: 1px;
+}
+.search-input::placeholder { color: var(--faint); }
+.search-input:focus { border-color: var(--gold); }
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* ─── FOOTER ─────────────────────────────────────────────── */
+footer {
+  padding: 40px 60px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-text {
+  font-family: 'Inconsolata', monospace;
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: 1px;
+}
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.empty-state {
+  padding: 80px 0;
+  text-align: center;
+  color: var(--faint);
+  font-style: italic;
+  font-size: 18px;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; }
+  .sidebar-section { display: inline-block; margin-right: 24px; margin-bottom: 16px; }
+  header, .content, footer, .search-bar { padding-left: 24px; padding-right: 24px; }
+  .phase-nav { padding: 0 24px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .knowledge-card.expanded { grid-column: span 1; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Knowledge Preservation Archive</div>
+  <h1>THE<br><em>RESTART</em><br>INDEX</h1>
+  <p class="header-sub">A structured index of essential human knowledge — from surviving the first hour to rebuilding civilization from the ground up.</p>
+  <div class="header-meta">
+    <div class="meta-item">Phases: <span>6</span></div>
+    <div class="meta-item">Domains: <span>9</span></div>
+    <div class="meta-item">Entries: <span>45</span></div>
+    <div class="meta-item">Scales: <span>Solo → City</span></div>
+  </div>
+</header>
+
+<nav class="phase-nav">
+  <button class="phase-btn active" data-phase="all" onclick="filterPhase('all', this)">All Phases</button>
+  <button class="phase-btn" data-phase="0" onclick="filterPhase('0', this)">⚠ Phase 0 — Immediate</button>
+  <button class="phase-btn" data-phase="1" onclick="filterPhase('1', this)">Phase 1 — Stabilize</button>
+  <button class="phase-btn" data-phase="2" onclick="filterPhase('2', this)">Phase 2 — Foundation</button>
+  <button class="phase-btn" data-phase="3" onclick="filterPhase('3', this)">Phase 3 — Settlement</button>
+  <button class="phase-btn" data-phase="4" onclick="filterPhase('4', this)">Phase 4 — Growth</button>
+  <button class="phase-btn" data-phase="5" onclick="filterPhase('5', this)">Phase 5 — Civilization</button>
+</nav>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" type="text" placeholder="Search knowledge entries..." oninput="searchEntries(this.value)">
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filter by Domain</div>
+      <button class="filter-btn active" onclick="filterDomain('all', this)">All domains</button>
+      <button class="filter-btn" onclick="filterDomain('water', this)">💧 Water</button>
+      <button class="filter-btn" onclick="filterDomain('fire', this)">🔥 Fire & Energy</button>
+      <button class="filter-btn" onclick="filterDomain('shelter', this)">🏚 Shelter</button>
+      <button class="filter-btn" onclick="filterDomain('food', this)">🌾 Food & Agriculture</button>
+      <button class="filter-btn" onclick="filterDomain('health', this)">⚕ Health & Medicine</button>
+      <button class="filter-btn" onclick="filterDomain('tools', this)">⚒ Tools & Materials</button>
+      <button class="filter-btn" onclick="filterDomain('hygiene', this)">🫧 Hygiene</button>
+      <button class="filter-btn" onclick="filterDomain('containers', this)">📦 Containers</button>
+      <button class="filter-btn" onclick="filterDomain('navigation', this)">🧭 Navigation</button>
+      <button class="filter-btn" onclick="filterDomain('energy', this)">⚙ Mechanical Energy</button>
+      <button class="filter-btn" onclick="filterDomain('society', this)">🏛 Society & Knowledge</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filter by Scale</div>
+      <button class="filter-btn" onclick="filterScale('solo', this)"><span class="scale-badge scale-solo">Solo</span> 1 person</button>
+      <button class="filter-btn" onclick="filterScale('small', this)"><span class="scale-badge scale-small">Small</span> 2–10</button>
+      <button class="filter-btn" onclick="filterScale('village', this)"><span class="scale-badge scale-village">Village</span> 10–100</button>
+      <button class="filter-btn" onclick="filterScale('city', this)"><span class="scale-badge scale-city">City</span> 100+</button>
+      <button class="filter-btn active" onclick="filterScale('all', this)">Clear filter</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="content" id="main-content">
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PHASE 0 — IMMEDIATE SURVIVAL                    -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="phase-block" data-phase-color="0" data-phase="0">
+      <div class="phase-header">
+        <div>
+          <div class="phase-tag">Phase 0</div>
+          <div class="phase-title">Immediate Survival</div>
+          <div class="phase-timeline">Hour 0 → 72 hours</div>
+          <div class="phase-desc">The first 72 hours determine everything. Water. Warmth. Shelter. Signal. Do not start long-term projects yet.</div>
+        </div>
+        <div class="phase-number-large">0</div>
+      </div>
+      <div class="cards-grid">
+
+        <div class="knowledge-card domain-water" data-domain="water" data-scale="solo small" data-phase="0" data-keywords="water purify drinkable boil filtration dehydration spring river stream">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">💧 Water</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Finding & Purifying Water</div>
+            <div class="card-lead">Dehydration kills in 3 days. This is always the first priority, before food, before shelter.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Finding sources</div>
+              <ul class="detail-list">
+                <li>Follow terrain downhill — water pools in valleys, low ground, and follows gravity</li>
+                <li>Follow animal trails at dusk/dawn — they lead to water sources</li>
+                <li>Listen for running water. In forests, insects and frogs signal wetness</li>
+                <li>Morning dew on leaves: wipe with a cloth and wring into a container</li>
+                <li>Green vegetation in dry terrain = subsurface water. Dig in the outer bend of a dry riverbed</li>
+                <li>Avoid stagnant pools with no outlet and green algae — high contamination risk</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Emergency purification (no tools)</div>
+              <ol class="detail-steps">
+                <li>Let sediment settle — wait 15 minutes undisturbed</li>
+                <li>Filter through cloth layers (shirt, bandana) to remove particles</li>
+                <li>Boil vigorously for 1 full minute (3 min above 2000m altitude)</li>
+                <li>Let cool before drinking — heat alone does not make warm water safe to handle</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Minimum daily requirement</div>
+              <div class="detail-text">2 liters/person in temperate climate. 4–6 liters in heat or with physical exertion. Urine color is your indicator — pale yellow = hydrated, dark = drink more now.</div>
+            </div>
+            <div class="scale-note"><strong>Solo:</strong> 1 container for purification is enough. <strong>Group:</strong> Rotate boiling in largest available vessels. Assign one person water duty — do not let everyone share improvised containers without purification.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-none">nothing — first priority</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Wound Care (08)</span><span class="dep-tag">Food Procurement (06)</span><span class="dep-tag">Soap (12)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-fire" data-domain="fire" data-scale="solo small" data-phase="0" data-keywords="fire friction flint tinder spark coal bow drill">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🔥 Fire & Energy</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span></div>
+            </div>
+            <div class="card-title">Starting Fire Without Tools</div>
+            <div class="card-lead">Fire is warmth, water purification, light, cooking, and psychological stability. Learn two methods — one will fail.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Tinder — your first priority</div>
+              <ul class="detail-list">
+                <li>Dry grass, cattail fluff, birch bark shavings, dry moss, powdered rotted wood</li>
+                <li>Must be bone-dry. Breathe on it — if you feel moisture on your hand, keep drying</li>
+                <li>Form a "bird's nest" shape that cradles an ember and allows airflow</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Method 1 — Bow Drill (most reliable)</div>
+              <ol class="detail-steps">
+                <li>Fireboard: flat dry softwood (willow, cedar, elder, mullein). Cut a notch + depression</li>
+                <li>Spindle: straight dry hardwood rod, ~45cm, slightly pointed at bottom</li>
+                <li>Bow: bent branch with cordage. Tension matters — firm but not snapping</li>
+                <li>Handhold: hard piece of wood or stone with a depression for the spindle top</li>
+                <li>Drill fast, press down firmly. Smoke in 10–30 seconds means correct friction</li>
+                <li>Black powder collects in the notch — this is your ember. Transfer to tinder nest</li>
+                <li>Blow gently at the base of the nest until flame appears</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Method 2 — Flint & Steel</div>
+              <div class="detail-text">Strike flint at a sharp angle against high-carbon steel (any old knife). Aim sparks into char cloth or fungus (amadou from horse hoof fungus). Requires preparation of char cloth in advance — ideal once you have a camp.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Fire structure</div>
+              <ul class="detail-list">
+                <li>Teepee: quick ignition, good for getting started</li>
+                <li>Log cabin: slow-burning, better for sustained heat and cooking</li>
+                <li>Star fire: push logs inward as they burn — minimal wood splitting required</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Cordage (07)</span><span class="dep-none">— or improvised from environment</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Water Purification (01)</span><span class="dep-tag">Cooking</span><span class="dep-tag">Charcoal (23)</span><span class="dep-tag">Pottery (25)</span><span class="dep-tag">Lighting (P2)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-shelter" data-domain="shelter" data-scale="solo small" data-phase="0" data-keywords="shelter debris hut lean-to emergency warmth rain hypothermia">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🏚 Shelter</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Emergency Shelter Construction</div>
+            <div class="card-lead">Hypothermia kills faster than hunger. A good emergency shelter can be built in 2 hours and will keep you warm with no fire.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Site selection (critical)</div>
+              <ul class="detail-list">
+                <li>Avoid valleys and low ground — cold air sinks, flood risk, insects</li>
+                <li>Avoid exposed ridgelines — wind exposure, lightning risk</li>
+                <li>Near resources but not next to standing water (mosquitoes, flood)</li>
+                <li>Natural windbreak: large rocks, dense trees on the windward side</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Debris Hut — best solo shelter</div>
+              <ol class="detail-steps">
+                <li>Find a ridgepole 3m long. Prop one end on a fork at 1m height</li>
+                <li>Lean branches along both sides at 45° — like a ribcage</li>
+                <li>Layer dead leaves, debris, pine needles from ground up (like shingles)</li>
+                <li>Pile must be at least 60cm thick on all sides to insulate</li>
+                <li>Fill interior with dry leaf insulation — your sleeping bag</li>
+                <li>Size rule: just big enough to fit your body. Smaller = warmer</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Lean-to — 2+ people, with fire</div>
+              <div class="detail-text">Tie a crossbar between two trees at 1.2m. Lean poles at 45° from crossbar to ground. Cover with branches, then debris. Open face toward fire — reflects heat inward. Fast to build but offers less warmth than a debris hut without fire.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-none">nothing — read terrain only</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Wattle & Daub (15)</span><span class="dep-tag">Community Org (27)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 04 — NATURAL CONTAINERS -->
+        <div class="knowledge-card domain-containers" data-domain="containers" data-scale="solo" data-phase="0" data-keywords="container carry hold leaf bark shell stomach bladder water vessel stone boiling cooking">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">📦 Containers</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span></div>
+            </div>
+            <div class="card-title">Natural Containers — First Hours</div>
+            <div class="card-lead">You cannot carry water, cook food, or store anything without a container. Nature provides them immediately — you only need to know where to look.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Immediate ready-made containers</div>
+              <ul class="detail-list">
+                <li>Large leaves (burdock, banana, lotus, rhubarb) — fold into cone, pin with a thorn. Carries water for minutes. Enough to drink from a stream without touching your face to the ground</li>
+                <li>Birch or pine bark — peel a section, fold edges up, pin corners with split twigs. Holds shape for hours. The most useful immediate container in temperate climates</li>
+                <li>Shells — large bivalve shells (mussel, clam) are natural scoops and bowls. Found near any coastline or riverbank</li>
+                <li>Hollow in rock — a natural depression in flat rock holds water and can be used as a mortar for grinding</li>
+                <li>Coconut shell, gourd — in tropical environments, the most durable natural container. Will last weeks with no processing</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Animal-sourced containers (if you have a kill)</div>
+              <ul class="detail-list">
+                <li>Stomach — clean immediately, tie one end, fill with water. Completely watertight. Also usable as a cooking vessel (water only, not over direct flame)</li>
+                <li>Bladder — smaller, thin-walled, excellent water carrier. Dries and cracks without use — keep slightly moist</li>
+                <li>Hide — any section of raw animal skin, fur side out, forms a rough bag when tied. Leaks slowly but holds volume. Full leather tanning comes in Phase 2</li>
+                <li>Intestine — cleaned and tied, makes a surprisingly strong tube and storage bag. Used for fat and liquid storage historically</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Stone boiling — cooking without fire-resistant containers</div>
+              <div class="detail-text">This technique bridges Phase 0 containers to proper cooking. Fill a bark vessel, animal stomach, or hide bag with water. Heat rocks directly in the fire for 20–30 minutes. Use two sticks as tongs to transfer hot rocks into the water. Rocks at 300°C+ will bring water to a boil within minutes. Replace cooling rocks with fresh hot ones. You can boil stew, render fat, and purify water without any vessel that can touch fire. This was how the majority of human prehistory cooked before pottery.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">What each container is good for</div>
+              <ul class="detail-list">
+                <li>Leaf cone — single drink, immediate use only</li>
+                <li>Bark vessel — carrying water, stone boiling, short-term storage (days)</li>
+                <li>Animal stomach — water storage, stone boiling, liquid food (weeks if maintained)</li>
+                <li>Hide bag — bulk carry, dry storage, rough liquid (leaky)</li>
+                <li>Rock hollow — grinding, processing, stationary water collection</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-none">nothing — read environment only</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Water (01)</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Food Procurement (06)</span><span class="dep-tag">Bark & Hide (09)</span><span class="dep-tag">Basketry (16)</span><span class="dep-tag">Pottery (25)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 05 — ORIENTATION & SIGNALING -->
+        <div class="knowledge-card domain-navigation" data-domain="navigation" data-scale="solo small" data-phase="0" data-keywords="direction orientation compass north south sun star signal fire sos rescue stay move lost">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🧭 Orientation</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Orientation & Signaling</div>
+            <div class="card-lead">The first decision — stay or move — is the most consequential one you will make. Most people who die lost made the wrong call here. Then: be findable.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Stay or move — the critical decision</div>
+              <ul class="detail-list">
+                <li>Default answer: stay. Searchers look for you where you were last seen. Moving makes you exponentially harder to find</li>
+                <li>Move only if: you have no water and cannot get any, your location is actively dangerous (flash flood, hostile terrain), or you have confirmed knowledge of safety within reachable distance</li>
+                <li>If you move: leave clear signs at your starting point — arrow of rocks, stamped message, tied cloth. Mark your direction of travel at every significant decision point</li>
+                <li>The scenario changes entirely in a permanent displacement (back in time, collapsed civilization) — then movement toward resources and people is correct</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Determining direction — daytime</div>
+              <ol class="detail-steps">
+                <li>Shadow tip method: push a stick upright into flat ground. Mark the shadow tip</li>
+                <li>Wait 15 minutes. Mark the new shadow tip</li>
+                <li>A line drawn between first and second marks runs roughly west to east</li>
+                <li>Stand with first mark at your left foot, second at right — you face north (in northern hemisphere)</li>
+                <li>Sun arc: in northern hemisphere, sun rises slightly north of east (summer) or south of east (winter), but always sets in the west. Use peaks and valleys on the horizon as fixed west reference</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Determining direction — night</div>
+              <ul class="detail-list">
+                <li>Northern hemisphere: find Polaris (North Star). Locate the Big Dipper — draw a line through the two stars at the end of its cup, extend 5× that distance. That star is Polaris. It sits almost exactly due north and does not move</li>
+                <li>Southern hemisphere: the Southern Cross. Draw a line through the long axis of the cross and extend 4× its length. That point in the sky is due south</li>
+                <li>All stars rise in the east and set in the west — watch any star for 10 minutes to confirm direction of movement</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Signaling for rescue</div>
+              <ul class="detail-list">
+                <li>Rule of three: three of anything is universal distress — three fires in a triangle, three shots, three whistle blasts, three flashes</li>
+                <li>Signal fire: on high ground, burn green wood or wet vegetation for maximum white smoke (daytime). Dry wood gives dark smoke visible against light sky. Keep fuel stockpiled so you can light instantly</li>
+                <li>Ground signals: stomp SOS or a large arrow into snow, sand, or tall grass. Minimum 3m letters. Add rocks or branches to increase contrast</li>
+                <li>Reflector: any shiny surface (metal, mirror, phone screen) flashed at an aircraft can be seen from 15km+. Aim by holding two fingers up toward the aircraft with reflected sunlight on them, then flash the object between your fingers and the target</li>
+                <li>At night: fire is visible from aircraft at 8km+. Keep it burning</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Fire (02)</span><span class="dep-none">for signal fire</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Territory Mapping (10)</span><span class="dep-tag">Navigation (49)</span><span class="dep-tag">Map Making (51)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PHASE 1 — STABILIZATION                         -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="phase-block" data-phase-color="1" data-phase="1">
+      <div class="phase-header">
+        <div>
+          <div class="phase-tag">Phase 1</div>
+          <div class="phase-title">Stabilization</div>
+          <div class="phase-timeline">Day 3 → Week 4</div>
+          <div class="phase-desc">You have water and fire. Now build systems — repeatable processes that don't require constant effort. Food procurement, basic medicine, tools.</div>
+        </div>
+        <div class="phase-number-large">1</div>
+      </div>
+      <div class="cards-grid">
+
+        <div class="knowledge-card domain-food" data-domain="food" data-scale="solo small" data-phase="1" data-keywords="food forage plants edible poison berries mushrooms hunting trapping snare fishing">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Food</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Food Procurement — Wild Sources</div>
+            <div class="card-lead">You can survive 3 weeks without food but weakness starts in 3 days. Know what to eat, what to trap, and the universal edibility test.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Universal Edibility Test (unknown plants)</div>
+              <ol class="detail-steps">
+                <li>Separate the plant into parts: leaves, stem, root, fruit</li>
+                <li>Smell each part. Strong unpleasant odor = avoid</li>
+                <li>Touch a piece to lips for 15 min — no burning = proceed</li>
+                <li>Chew a small amount without swallowing, wait 15 min</li>
+                <li>If no reaction, swallow a small amount. Wait 8 hours</li>
+                <li>Test only ONE part of ONE plant at a time. Never test if starving — your judgment will be impaired</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Universally safe in most climates</div>
+              <ul class="detail-list">
+                <li>Cattail (Typha) — roots, shoots, pollen are all edible year-round</li>
+                <li>Dandelion — leaves, flowers, roots fully edible</li>
+                <li>Pine needles — high in Vitamin C, brew as tea</li>
+                <li>Acorns — boil multiple times to remove tannins, then dry/grind</li>
+                <li>Clover — eat raw or cooked</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Trapping — passive food</div>
+              <ul class="detail-list">
+                <li>Small game snare: loop of cordage 10cm diameter, 25cm above ground on a trail</li>
+                <li>Set 5–10 snares for every 1 expected catch — low success rate per trap</li>
+                <li>Check snares every 12 hours — or scavengers claim your catch</li>
+                <li>Fishing: improvised hook from a thorn or bent wire, gut thread as line, worm or insect bait</li>
+              </ul>
+            </div>
+            <div class="scale-note"><strong>Solo:</strong> Focus on trapping over hunting — requires less energy. <strong>Group:</strong> Assign dedicated foragers. Rotate hunting and camp duties. Pool food and cook communally for calorie efficiency.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Water (01)</span><span class="dep-tag">Containers (04)</span><span class="dep-tag">Cordage (07)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Agriculture (13)</span><span class="dep-tag">Animal Husbandry (21)</span><span class="dep-tag">Leather (22)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-tools" data-domain="tools" data-scale="solo small" data-phase="1" data-keywords="rope cordage knot tools flint stone knife blade cutting">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚒ Tools</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Cordage & Basic Tool Making</div>
+            <div class="card-lead">Rope and cutting tools multiply your capability by an order of magnitude. Both can be made from widely available natural materials.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Making Cordage (rope)</div>
+              <ol class="detail-steps">
+                <li>Source: plant fibers (nettles, dogbane, milkweed, inner bark of lime/basswood), plant stems, animal sinew</li>
+                <li>Dry and separate fibers into thin bundles</li>
+                <li>Hold two bundles, twist each clockwise individually</li>
+                <li>While twisting, wrap both bundles counter-clockwise around each other</li>
+                <li>Add new fiber before a bundle runs out — overlap 5cm and continue</li>
+                <li>Test: good cordage holds 50kg per cm² of thickness. Wet cordage loses strength — account for this</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Stone Knapping (cutting edge)</div>
+              <ol class="detail-steps">
+                <li>Best stones: flint, obsidian, chert, quartzite. Look for glassy, fine-grained surfaces</li>
+                <li>Use a hammerstone (river-smoothed rock) for large flakes</li>
+                <li>Strike at the edge at 30–45° angle — not 90° which causes crushing</li>
+                <li>Pressure flaking: use a pointed antler tip or hardwood to press off thin flakes for fine edges</li>
+                <li>Fresh flint edge is sharper than surgical steel — handle with respect</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Essential knots to learn first</div>
+              <ul class="detail-list">
+                <li>Bowline — forms a fixed loop that won't slip. For rescue, anchoring</li>
+                <li>Clove hitch — fast pole lashing, scaffolding</li>
+                <li>Square lashing — joining two poles at 90° (shelters, frames)</li>
+                <li>Prusik — climbing, load-bearing on rope</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-none">raw plant fiber or sinew only</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Shelter (03)</span><span class="dep-tag">Trapping (06)</span><span class="dep-tag">Bark Containers (09)</span><span class="dep-tag">Bone Tools (11)</span><span class="dep-tag">Basketry (16)</span><span class="dep-tag">Leather (22)</span><span class="dep-tag">Simple Machines (32)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-health" data-domain="health" data-scale="solo small" data-phase="1" data-keywords="medicine wound infection fever plant herbal clean antiseptic bandage">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚕ Health</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Basic Wound Care & Infection Prevention</div>
+            <div class="card-lead">Without antibiotics, infection is the real killer. Cleanliness and correct wound management are 90% of primitive medicine.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Wound treatment priority</div>
+              <ol class="detail-steps">
+                <li>Stop bleeding first: direct pressure for 10+ min without lifting. Elevate limb</li>
+                <li>Clean thoroughly with clean boiled water — more water is always better than less</li>
+                <li>Remove visible debris with a clean implement. Do not probe deep wounds</li>
+                <li>Antiseptic: diluted pine resin, honey (raw, antibacterial), garlic juice, yarrow leaf</li>
+                <li>Allow to partially air-dry then cover with clean cloth</li>
+                <li>Change dressing twice daily. Watch for redness spreading outward, warmth, pus = infection</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Key medicinal plants (temperate zones)</div>
+              <ul class="detail-list">
+                <li>Yarrow (Achillea millefolium) — stops bleeding, antiseptic. Apply crushed leaves directly</li>
+                <li>Plantain leaf (Plantago) — anti-inflammatory, draws infection. Chew and apply as poultice</li>
+                <li>Willow bark — contains salicin (natural aspirin). Boil bark, drink for fever/pain</li>
+                <li>Garlic — broad-spectrum antimicrobial. Crush and apply or eat raw</li>
+                <li>Pine resin — wound sealant, antiseptic. Apply warm directly to wound</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Fever management</div>
+              <div class="detail-text">Mild fever (under 39°C) is beneficial — the body fighting infection. Above 39°C: cool wet compresses on neck/armpits, willow bark tea, force fluids. Fever above 40°C is life-threatening — prioritize cooling above all else.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Water (01)</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Containers (04)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Alcohol/Antiseptic (40)</span><span class="dep-tag">Bone Setting (45)</span><span class="dep-tag">Herbal Pharmacy (60)</span><span class="dep-tag">Midwifery (44)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 09 — BARK & HIDE CONTAINERS -->
+        <div class="knowledge-card domain-containers" data-domain="containers" data-scale="solo small" data-phase="1" data-keywords="bark birch hide container vessel boil stone cooking waterproof birch sew sinew rawhide">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">📦 Containers</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Bark & Hide Containers</div>
+            <div class="card-lead">Upgrade from Phase 0 improvisation to durable, intentional vessels. Birch bark and prepared hide cover almost every container need before pottery exists.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Birch bark vessel — the most useful Phase 1 container</div>
+              <ol class="detail-steps">
+                <li>Harvest fresh bark in spring or early summer — it peels cleanly. Dried bark cracks when folded</li>
+                <li>Cut a rectangle. Score fold lines lightly with a flint edge — do not cut through</li>
+                <li>Fold up the four sides. At each corner, fold excess bark inward and overlap — like wrapping a package</li>
+                <li>Pin corners with thin split-wood pegs or thorns pushed through the layers</li>
+                <li>For a permanent vessel: sew corners with sinew through small holes punched with a bone awl</li>
+                <li>Seal seams with pine pitch — heat resin until liquid, apply warm with a stick. Fully watertight when done</li>
+                <li>A well-made birch bark vessel lasts months to a year of daily use</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Stone boiling — cooking without fire-resistant containers</div>
+              <div class="detail-text">Any bark or hide container becomes a cooking vessel using heated rocks. Heat stones directly in fire for 20–30 minutes — avoid river-rounded wet rocks, which can explode from trapped steam. Transfer with two sticks into water-filled vessel. A 20cm rock brings 2 liters to boil in under 5 minutes. Replace cooling rocks with fresh hot ones to hold temperature. This enables full cooking — stews, rendered fat, boiled grain — long before pottery is available.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Hide containers — carry and dry storage</div>
+              <ol class="detail-steps">
+                <li>Fresh rawhide (undried skin) is pliable — while wet it can be formed into any shape</li>
+                <li>Fold into a bag shape, punch holes along the edge with a bone awl</li>
+                <li>Lace with sinew or cordage through holes in a running stitch</li>
+                <li>Allow to dry in the desired shape — rawhide sets rock-hard. A formed rawhide bowl holds its shape permanently</li>
+                <li>Limitation: not watertight for liquids. Excellent for dry goods, carrying, seed storage</li>
+                <li>Smoked or brain-tanned hide stays soft after drying — suitable for bags, pouches, and clothing</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Priority build order</div>
+              <ul class="detail-list">
+                <li>Large birch bark box — water storage, stone boiling, general carry</li>
+                <li>Hide pouch — dry goods, seeds, tool storage</li>
+                <li>Bark tray — food prep surface, processing plants, sorting seeds</li>
+                <li>Hide water bag — liquid transport when birch bark unavailable</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Natural Containers (04)</span><span class="dep-tag">Cordage (07)</span><span class="dep-tag">Bone Tools (11)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Basketry (16)</span><span class="dep-tag">Pottery (25)</span><span class="dep-tag">Leather (22)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 10 — TERRITORY MAPPING -->
+        <div class="knowledge-card domain-navigation" data-domain="navigation" data-scale="solo small" data-phase="1" data-keywords="map territory sketch resource location water food shelter navigation landmark survey pace">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🧭 Navigation</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Reading Terrain & Territory Mapping</div>
+            <div class="card-lead">A mental map of your territory is a survival asset. A physical map is a community asset that compounds in value with every person who uses and updates it.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Reading terrain for resources</div>
+              <ul class="detail-list">
+                <li>Elevation breaks — where ridges drop into valleys — concentrate resources: water flows down, animals travel between elevations at predictable crossing points, sheltered south-facing slopes are warmest and most productive</li>
+                <li>Vegetation density signals soil quality. Dense varied growth = good soil and water access. Sparse uniform scrub = poor drainage or thin topsoil</li>
+                <li>Clearings in dense forest = former settlements, fire history, or seasonal wetland. Often richest foraging areas — investigate deliberately</li>
+                <li>Animal trails always lead somewhere useful: water, salt lick, crossing point, food source. Follow them with intent, not random wandering</li>
+                <li>Standing dead trees = accessible dry firewood. Living trees with damaged bark = wildlife activity, potential food or medicine nearby</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Creating a working sketch map</div>
+              <ol class="detail-steps">
+                <li>Start with your camp as center — mark it clearly and anchor everything to it</li>
+                <li>Establish one fixed direction using a sunrise bearing or shadow stick. All mapping is relative to this line</li>
+                <li>Walk systematic radiating lines from camp — not random exploration. Fully explore one direction before the next</li>
+                <li>Mark major landmarks first: water sources, high ground, distinctive trees, rock formations</li>
+                <li>Estimate distance by pace count. Learn your own pace (average adult: 75cm per step). Count double-steps per 100m</li>
+                <li>Draw on bark, clay tablet, or flat stone. Update after every exploration trip without exception</li>
+                <li>Note seasonal features: stream that dries in summer, berry patch that fruits in autumn. A map with time data is far more valuable than a static one</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">What to map first — priority order</div>
+              <ul class="detail-list">
+                <li>All water sources within 2 hours of camp — with notes on reliability and quality by season</li>
+                <li>Dominant plant species per zone — enables foraging without re-scouting the same ground</li>
+                <li>Animal movement corridors — sets trap lines efficiently, reduces wasted effort</li>
+                <li>High ground with clear line of sight — for signal fire placement and early threat warning</li>
+                <li>Soil quality zones — foundation for all future agricultural planning</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Map as shared community document</div>
+              <div class="detail-text">In a group, the territory map becomes the single most important shared knowledge object. Assign one person as map keeper — accountable for updates and legibility. Every member who scouts contributes their observations. A well-maintained map prevents duplicated effort, enables real division of labor, and is the direct foundation for all agricultural and construction planning. Maintain multiple copies stored in separate locations — losing the map in a fire is a serious setback.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Orientation (05)</span><span class="dep-tag">Bark Containers (09)</span><span class="dep-none">for map surface</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Agriculture (13)</span><span class="dep-tag">Irrigation (34)</span><span class="dep-tag">Well Digging (35)</span><span class="dep-tag">Community Org (27)</span><span class="dep-tag">Map Making (51)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 11 — BONE & WOOD TOOL REFINEMENT -->
+        <div class="knowledge-card domain-tools" data-domain="tools" data-scale="solo small" data-phase="1" data-keywords="bone wood tool awl needle hook chisel drill lever handle hafting antler hardwood fire hardening">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚒ Tools</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Bone & Wood Tool Refinement</div>
+            <div class="card-lead">Stone gives you an edge. Bone gives you precision. Wood gives you handles, frames, and levers. Together they cover almost every tool need before metal exists.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Why bone works</div>
+              <div class="detail-text">Bone is dense, can be sharpened to a fine point, holds an edge under light use, and is produced as a byproduct of every meal. Large mammal long bones (leg bones) are the best raw material — split lengthwise with a hammerstone to expose the flat inner face. This flat section is your blank for most tools. Antler is even better: tougher, more flexible, excellent for pressure flakers and heavy-duty awls.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Essential bone tools — make in this order</div>
+              <ul class="detail-list">
+                <li>Awl — sharpened bone splinter tapered to a fine point. Punch holes in hide, bark, and leather. The single most versatile tool in early phases. Sharpen on rough sandstone in circular motion</li>
+                <li>Needle — thinner than awl, with an eye drilled near the blunt end. Use a sharp flint point rotated between palms to bore the hole. Enables proper stitching of hide clothing, bags, and sealed containers</li>
+                <li>Fish hook — curved rib section or carved bone, notched at both ends, tied in V shape with sinew. More reliable than a thorn hook for anything over 500g</li>
+                <li>Pressure flaker — pointed antler tine or dense bone tip for fine pressure flaking on stone tools. Creates thinner, sharper edges than a hammerstone alone</li>
+                <li>Spatula — flat wide bone section. Daub application, food mixing, hide scraping for leather preparation</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Wood tool refinement — beyond sticks</div>
+              <ul class="detail-list">
+                <li>Hafting — binding a stone blade to a wooden handle multiplies striking force 3–5×. Split wood end, seat blade, bind tightly with wet sinew (shrinks and locks as it dries), seal the joint with pine pitch</li>
+                <li>Fire hardening — push wooden tip briefly into coals, not flames. Hardening penetrates 2–3mm. A fire-hardened digging stick lasts 10× longer in field use</li>
+                <li>Wedge — dense hardwood (oak, ash) shaped to a V taper. Driven with a hammerstone for splitting logs — replaces a metal axe for most felling work</li>
+                <li>Digging stick — 1.2m, fire-hardened, pointed tip. The primary agricultural tool before any plow. Also used for uprooting edible plants, digging pit traps, and latrine excavation</li>
+                <li>Drill — straight dry hardwood rod, pointed end. Rotated between palms against softwood creates a depression for fire-making and later for boring holes in wood construction</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Tool discipline — critical in any group</div>
+              <div class="detail-text">Keep a dedicated sharpening stone (fine-grained sandstone) at camp. Sharpen before and after every use — a dull tool requires excessive force and slips dangerously. Store tools in a hide pouch or bark box, never loose on the ground. In a group, maintain a written or scratched inventory: who has which tool, when it was last sharpened, what condition it is in. Tools vanish in camps without accountability.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Cordage (07)</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Food Procurement (06)</span><span class="dep-none">for bone source</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Bark Containers (09)</span><span class="dep-tag">Basketry (16)</span><span class="dep-tag">Leather (22)</span><span class="dep-tag">Pottery (25)</span><span class="dep-tag">Agriculture (13)</span><span class="dep-tag">Textile (30)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PHASE 2 — FOUNDATION                            -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="phase-block" data-phase-color="2" data-phase="2">
+      <div class="phase-header">
+        <div>
+          <div class="phase-tag">Phase 2</div>
+          <div class="phase-title">Foundation</div>
+          <div class="phase-timeline">Week 2 → Month 6</div>
+          <div class="phase-desc">Build permanence. Grow your own food. Make soap. Upgrade shelter. Preserve food for winter. Every decision now should last years, not days.</div>
+        </div>
+        <div class="phase-number-large">2</div>
+      </div>
+      <div class="cards-grid">
+
+        <div class="knowledge-card domain-hygiene" data-domain="hygiene" data-scale="solo small village" data-phase="2" data-keywords="soap lye ash fat hygiene wash skin hair clean">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🫧 Hygiene</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Making Soap from Ash & Fat</div>
+            <div class="card-lead">Soap reduced mortality rates more than almost any other invention. Two ingredients: lye (from wood ash) + animal fat. Both are always available.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Making Lye (potassium hydroxide)</div>
+              <ol class="detail-steps">
+                <li>Burn hardwood (oak, hickory, maple) to clean white ash — avoid ash from painted/treated wood</li>
+                <li>Pack ash tightly into a wooden barrel or clay pot with a drainage hole at bottom</li>
+                <li>Slowly pour rainwater (not hard water) through ash</li>
+                <li>Collect the brownish liquid that drains — this is raw lye solution</li>
+                <li>Test strength: drop in a raw egg — it should float just below the surface. Too weak: boil to concentrate. Too strong: add water</li>
+                <li>Handle with care — strong lye burns skin and eyes</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Making the Soap</div>
+              <ol class="detail-steps">
+                <li>Render fat: heat animal fat (any kind) over fire until liquid, strain solids — this is tallow</li>
+                <li>Ratio: approximately 3 parts lye liquid to 1 part fat by volume (adjust to trace)</li>
+                <li>Heat lye solution gently. Combine with melted fat in iron or clay pot</li>
+                <li>Stir constantly over low heat for 1–3 hours until mixture thickens ("trace" — leaves a trail when you drip it)</li>
+                <li>Pour into a mold (wood frame, clay form). Cover and let cure 4–6 weeks</li>
+                <li>Fresh soap is caustic — always let it cure before use</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Scent & additives</div>
+              <ul class="detail-list">
+                <li>Pine resin or lavender — add at trace stage for mild antiseptic properties</li>
+                <li>Rendered beeswax (small amount) — hardens the bar and adds moisturizing quality</li>
+                <li>Oat flour — gentle exfoliant, adds body</li>
+              </ul>
+            </div>
+            <div class="scale-note"><strong>Solo:</strong> Soft soap (not cured) can be used immediately as a paste — less efficient but functional. <strong>Village scale:</strong> Assign soap production as a weekly task. Standardize lye concentration. Trade bars for labor — soap becomes a valued commodity.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Containers (04)</span><span class="dep-tag">Charcoal/Ash (23)</span><span class="dep-tag">Animal Husbandry (21)</span><span class="dep-none">for fat</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Sanitation (55)</span><span class="dep-tag">Wound Care (08)</span><span class="dep-tag">Quarantine (47)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Agriculture</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Starting Agriculture from Zero</div>
+            <div class="card-lead">A single person needs roughly 1000m² to feed themselves. Soil, seeds, timing, and water management are the four pillars.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Soil selection & preparation</div>
+              <ul class="detail-list">
+                <li>Ideal: dark loamy soil that forms a ball when squeezed but crumbles with pressure. Avoid clay-heavy or sandy extremes</li>
+                <li>Worm presence = good biological activity</li>
+                <li>Clear vegetation. In cleared areas: cut, then burn to kill seeds and add potash</li>
+                <li>Loosen soil 30cm deep (no plow: use a sharpened stick, or improvise a mattock from stone + wood)</li>
+                <li>Add compost, rotted wood, or manure to thin soil</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Highest-priority crops by caloric return</div>
+              <ul class="detail-list">
+                <li>Potatoes — highest calories per m², shade-tolerant, fast (70 days), easy to store</li>
+                <li>Corn/Maize — high yield, versatile, can be dried and stored for years</li>
+                <li>Beans/Legumes — nitrogen-fixing (improves soil), high protein, very storable</li>
+                <li>Squash/Pumpkin — large yield, calorie dense, natural pest repellent (three sisters system)</li>
+                <li>Wheat/Rye — storable grain. Requires more land but produces the most calories per kg stored</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Three Sisters Method (companion planting)</div>
+              <div class="detail-text">Plant corn first. When 15cm tall, plant beans around it — they fix nitrogen and climb the stalk. Plant squash between the mounds — its large leaves shade the ground, retaining moisture and blocking weeds. Three plants, one system that feeds itself.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Seed saving (critical)</div>
+              <ul class="detail-list">
+                <li>Always reserve 20% of each crop as seed for next cycle</li>
+                <li>Select seed from the strongest, earliest-producing plants — selection pressure improves your crop each generation</li>
+                <li>Dry fully, store in cool dark place in clay pots with tight lids</li>
+              </ul>
+            </div>
+            <div class="scale-note"><strong>Small group:</strong> 2 people can manage 2000m² with primitive tools. <strong>Village:</strong> Assign field workers based on 1 farmer per 4 mouths fed. Rotate fields — never plant the same crop in the same spot two years in a row.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Bone Tools (11)</span><span class="dep-tag">Territory Map (10)</span><span class="dep-tag">Containers (09)</span><span class="dep-tag">Water (01)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Grain Processing (19)</span><span class="dep-tag">Bread (20)</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Animal Husbandry (21)</span><span class="dep-tag">Irrigation (34)</span><span class="dep-tag">The Plow (33)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Food Preservation</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Preserving Food for Winter</div>
+            <div class="card-lead">Spoilage is the enemy of survival through winter. Five preservation methods cover all scenarios — master all five.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">1. Drying (most universal)</div>
+              <div class="detail-text">Slice meat/fish/vegetables thin (5mm). Hang in dry, warm, ventilated shade — direct sun bleaches and degrades nutrients. Smoke drying combines preservation with flavor. Fully dried food lasts 6–12 months. Test: meat should crack, not bend.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">2. Salting</div>
+              <div class="detail-text">Salt draws moisture from cells via osmosis, preventing bacterial growth. Dry-rub meat or fish with heavy salt, layer in clay pots. Salt can be extracted by boiling seawater or finding salt licks (mineral deposits followed by animals). 1 kg salt preserves approximately 3–4 kg meat.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">3. Smoking</div>
+              <div class="detail-text">Smoke contains antimicrobial compounds (phenols, formaldehyde). Cold smoke at 25–40°C for 8–24 hours for flavor + light preservation. Hot smoke at 60–80°C for 2–6 hours for more complete preservation. Best woods: hardwoods only (oak, cherry, apple). Never use pine — resin creates toxic smoke.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">4. Fermentation (vegetables)</div>
+              <div class="detail-text">Pack shredded vegetables tightly in a clay pot with 2% salt by weight. Submerge under brine — use a rock as a weight. Cover loosely. Lactobacillus naturally present on vegetables takes over within 3–5 days, producing lactic acid which prevents pathogen growth. Sauerkraut, kimchi, pickles — same principle. Lasts months. Also adds probiotics.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">5. Root cellaring (storage)</div>
+              <div class="detail-text">Dig 2m below ground — temperature stabilizes around 10°C year-round. Layer potatoes, beets, carrots in dry sand. Separate apple from vegetables (ethylene gas accelerates rot). Check monthly and remove any rotting specimens immediately — one bad apple is literal here.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Salt (18)</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Containers (09)</span><span class="dep-tag">Pottery (25)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Trade (58)</span><span class="dep-tag">Community Org (27)</span><span class="dep-tag">Grain Storage (52)</span><span class="dep-tag">Winter survival</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-shelter" data-domain="shelter" data-scale="small village" data-phase="2" data-keywords="building construction wattle daub clay log cabin permanent house wall roof">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🏚 Shelter</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Permanent Shelter — Wattle & Daub</div>
+            <div class="card-lead">The cheapest, fastest, and most available building technique in human history. Clay + sticks + straw has sheltered humans for 6,000 years.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Materials</div>
+              <ul class="detail-list">
+                <li>Wattle: flexible branches (hazel, willow, any young growth) woven between upright posts</li>
+                <li>Daub: clay soil + chopped straw/grass + water + animal dung (binder). Mix to consistency of thick porridge</li>
+                <li>Posts: straight logs, 1.5× wall height, driven 50cm into ground</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Construction process</div>
+              <ol class="detail-steps">
+                <li>Set foundation posts in a rectangle, 60cm apart. Ensure level and plumb</li>
+                <li>Weave horizontal withies (thin flexible branches) in and out of upright posts</li>
+                <li>Pack daub mix onto both sides of wattle, pressing into gaps — both faces simultaneously is best</li>
+                <li>Apply in layers, letting each dry before the next (1–2 days in warm weather)</li>
+                <li>3 layers minimum (5–8cm total) for thermal mass and structural integrity</li>
+                <li>Apply lime render on exterior if available — dramatically improves weather resistance</li>
+                <li>Roof: steep pitch (45°+) essential for rain shedding. Thatch with reeds or grass in overlapping bundles, tied to rafters from bottom up</li>
+              </ol>
+            </div>
+            <div class="scale-note"><strong>Small group:</strong> 4 people can build a basic shelter in 1 week. <strong>Village:</strong> Specialize roles — clay mixers, weavers, daubbers. Standardize wall thickness and door sizes. Build communal structures first (granary, workshop) before individual homes.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Cordage (07)</span><span class="dep-tag">Bone Tools (11)</span><span class="dep-tag">Lime (24)</span><span class="dep-none">for render</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Brick Making (42)</span><span class="dep-tag">Fire Safety (P3)</span><span class="dep-tag">Community Org (27)</span><span class="dep-tag">Dry Stone (36)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 16 — BASKETRY -->
+        <div class="knowledge-card domain-containers" data-domain="containers" data-scale="solo small village" data-phase="2" data-keywords="basket weave coil wicker rush reed split wood pitch waterproof container carry storage">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">📦 Containers — Basketry</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Basketry</div>
+            <div class="card-lead">Woven containers require no fire, no ceramics, no metals — only plant material and time. They scale from a personal carry basket to large grain storage at village level.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Materials — what to harvest</div>
+              <ul class="detail-list">
+                <li>Willow withies — the classic. Harvest in spring when green and pliable, or soak dried withies overnight before use</li>
+                <li>Rush and reed — flat, wide, fast. Best for mats and large carrying baskets. Harvest when green, dry in shade</li>
+                <li>Split wood — oak, ash, or chestnut heartwood split into thin strips with a knife or wedge. Durable and strong for heavy-duty baskets</li>
+                <li>Pine roots — soak in water, split lengthwise. Fine, flexible, watertight when worked wet. Used for water-carrying baskets by many cultures</li>
+                <li>Grasses and straw — for coiled baskets. Thin bundles bound together in a spiral</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Coiled basketry — simplest to start</div>
+              <ol class="detail-steps">
+                <li>Form a tight bundle of grass or rush, about 1cm thick</li>
+                <li>Coil the bundle into a flat disk and bind each coil to the previous with a long thin fiber or split rush</li>
+                <li>Continue spiraling outward and upward, stitching each coil to the one below</li>
+                <li>To shape: angle your coils inward (to narrow) or outward (to widen). The angle determines the form</li>
+                <li>Finish by tapering the bundle to a thin end and stitching it down flat</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Wicker (stake and strand) — for rigid baskets</div>
+              <ol class="detail-steps">
+                <li>Set base stakes in a cross pattern on flat ground. Weave filler rods over-under through them to form a flat base</li>
+                <li>Bend upright stakes vertically at 90° — these become the walls</li>
+                <li>Weave horizontal weavers in and out around the uprights. Pack tight as you go</li>
+                <li>Alternate directions each row to lock the structure</li>
+                <li>Finish the top edge by folding each upright stake down into the weaving — locks the rim</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Making baskets waterproof</div>
+              <ul class="detail-list">
+                <li>Pine pitch coating — melt pitch (heat pine resin), apply hot with a stick inside and out. Let cool. Fully waterproof for water carrying and liquid storage</li>
+                <li>Clay slip — brush wet clay solution over tightly woven basket, let dry. Repeated applications build up. Can be fired — the basket burns away, leaving a clay vessel. Historically, this is likely how pottery was invented</li>
+                <li>Raw pitch mixed with charcoal powder — more durable than pure pitch, less brittle when cold</li>
+              </ul>
+            </div>
+            <div class="scale-note"><strong>Village scale:</strong> A dedicated basket maker supplies the whole community. Standardize sizes — a village-standard grain basket makes inventory counting and rationing far simpler. Baskets also become trade goods.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Cordage (07)</span><span class="dep-tag">Bone Tools (11)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Grain Storage (52)</span><span class="dep-tag">Pottery (25)</span><span class="dep-none">historically linked</span><span class="dep-tag">Trade (58)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 17 — CARVED WOODEN VESSELS -->
+        <div class="knowledge-card domain-containers" data-domain="containers" data-scale="solo small" data-phase="2" data-keywords="wood carve bowl trough vessel burn char scrape dugout mortar pestle container">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">📦 Containers — Wood</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span></div>
+            </div>
+            <div class="card-title">Carved Wooden Vessels</div>
+            <div class="card-lead">Wood vessels bridge the gap between bark improvisation and pottery. Carved bowls, troughs, and mortars can be made with only a stone chisel and fire — no kiln required.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Wood selection</div>
+              <ul class="detail-list">
+                <li>Best: lime (basswood), willow, poplar, alder — soft enough to work with stone tools, stable when dry</li>
+                <li>Avoid: oak (too hard for stone tools), resinous woods (pine, spruce) — resin taints food</li>
+                <li>Use green (fresh) wood for carving — it cuts cleanly. Let the finished piece dry slowly to prevent cracking</li>
+                <li>Split rather than saw — always split along the grain for cleanest results with primitive tools</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Burn-and-scrape method (fastest for large bowls)</div>
+              <ol class="detail-steps">
+                <li>Place a coal or burning ember on the surface of a flat log section</li>
+                <li>Blow gently to keep it burning — concentrate the heat in one area</li>
+                <li>Scrape out the charred material with a clam shell, bone spatula, or stone chisel</li>
+                <li>Repeat — burn, scrape, burn, scrape — deepening the bowl with each cycle</li>
+                <li>Work slowly to avoid burning through the bottom. Final scraping with fine sandstone smooths the interior</li>
+                <li>Charred interior naturally resists rot and repels insects — do not sand away completely</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Mortar and pestle — critical food processing tool</div>
+              <div class="detail-text">A deep stone or hardwood mortar with a rounded pestle is essential for processing acorns, grain, dried meat, and plant medicine. Find a natural hollow in hard rock first — this is your first mortar. For a wooden one, burn a deep hollow into a dense log section (oak, elm), smooth interior. The pestle is simply a rounded stone that fits the bowl. Do not neglect this — before any milling stone exists, the mortar is how all grain is processed.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Large troughs — scale function</div>
+              <div class="detail-text">A large wooden trough (1–2m long, 40cm wide, 30cm deep) serves as washing basin, food prep surface, animal water trough, and dye vat. Made by the burn-and-scrape method on a split log. Too large for pottery but critical at settlement scale. One trough serves a family — several serve a village workshop.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Bone Tools (11)</span><span class="dep-tag">Cordage (07)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Grain Processing (19)</span><span class="dep-tag">Leather Tanning (22)</span><span class="dep-tag">Textile (30)</span><span class="dep-tag">Natural Dyes</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 18 — SALT PRODUCTION -->
+        <div class="knowledge-card domain-food" data-domain="food" data-scale="small village city" data-phase="2" data-keywords="salt sodium mineral evaporation boil brine seawater rock salt lick preservation trade">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Food — Salt</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Salt Production</div>
+            <div class="card-lead">Salt is not a condiment — it is a biological necessity and the primary food preservative. Every preservation method except fermentation depends on it. Civilizations have gone to war over salt routes.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Finding salt — read the environment</div>
+              <ul class="detail-list">
+                <li>Salt licks — mineral deposits in soil that animals seek out. Convergence of animal trails in flat or dry terrain points to one. Lick the soil — if salty, dig down and collect it</li>
+                <li>Dry lake beds and seasonal ponds in arid areas — white crust on the surface is mineral salt, often near-pure sodium chloride</li>
+                <li>Seawater — reliably salty everywhere. 1 liter of seawater yields approximately 35g of salt</li>
+                <li>Inland mineral springs — some produce naturally saline water. Test with taste</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Method 1 — Solar evaporation (coastal, minimal effort)</div>
+              <ol class="detail-steps">
+                <li>Create shallow flat pans from clay or stone — maximum surface area, minimum depth (5cm)</li>
+                <li>Fill with seawater or brine. Sun and wind do the work</li>
+                <li>Harvest white crystals as water evaporates. Rake to edges as they form</li>
+                <li>Re-fill and repeat. One 4m² pan produces roughly 1kg salt per week in strong sun</li>
+                <li>Second crystallization in a shaded pan produces purer, finer salt</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Method 2 — Boiling brine (any climate)</div>
+              <ol class="detail-steps">
+                <li>Collect saline water in the largest available pottery vessel</li>
+                <li>Boil continuously over sustained fire — this is fuel-intensive</li>
+                <li>As water reduces, salt crystallizes on the sides and bottom</li>
+                <li>Reduce fully until dry. Scrape out salt while still warm</li>
+                <li>Efficiency note: start with the most concentrated brine available. Boiling seawater takes approximately 30× its volume in fuel vs. concentrated brine</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Salt as currency</div>
+              <div class="detail-text">Salt was among the first traded commodities in every civilization. It is imperishable, universally needed, and geographically scarce. If your group controls a salt source, you have a trade asset of enormous value. The word "salary" derives from the Latin salarium — Roman soldiers were sometimes paid in salt. Begin trading surplus salt early — it will attract skills and people you need.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Pottery (25)</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Territory Map (10)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Leather Tanning (22)</span><span class="dep-tag">Trade (58)</span><span class="dep-tag">Soap (12)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 19 — GRAIN PROCESSING -->
+        <div class="knowledge-card domain-food" data-domain="food" data-scale="small village" data-phase="2" data-keywords="grain wheat rye thresh winnow grind flour mill hand quern stone process harvest">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Food — Grain</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Grain Processing</div>
+            <div class="card-lead">Grain in the field and grain on the plate are separated by threshing, winnowing, and milling. Skip any step and your harvest is either inedible or wasted. Each step has a right tool and a right order.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Step 1 — Harvesting</div>
+              <ul class="detail-list">
+                <li>Harvest when grain heads are golden and dry — if heads droop and shatter easily when touched, you are late and losing grain to the ground</li>
+                <li>Cut stems 20cm below the head with a stone-bladed sickle or flint knife. Bundle into sheaves and tie with a twisted handful of straw</li>
+                <li>Stack sheaves head-up in the field for 1–2 weeks to finish drying — do not bring wet grain into storage</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Step 2 — Threshing (separating grain from stalk)</div>
+              <ul class="detail-list">
+                <li>Beat method: hold a bundle by the straw end, swing heads hard against a flat stone or wooden plank. Grain falls free in 5–10 strikes</li>
+                <li>Flail method: two sticks connected by a short length of rope or leather. Swing the shorter stick down onto spread grain. Covers more area per swing than beating</li>
+                <li>Treading method: spread grain on a hard flat surface, drive animals over it, or tread it yourself. Slowest but requires no tools</li>
+                <li>Collect all fallen grain on a mat or bark sheet — lose nothing</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Step 3 — Winnowing (separating grain from chaff)</div>
+              <ol class="detail-steps">
+                <li>Work on a breezy day or create airflow by fanning</li>
+                <li>Pour threshed grain slowly from a height — chaff (light husks) blows away, heavy grain falls straight</li>
+                <li>Catch grain on a flat bark sheet or woven mat. Repeat 2–3 times for clean grain</li>
+                <li>Final sorting: pick out remaining debris and damaged grains by hand on a flat surface</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Step 4 — Milling (grain to flour)</div>
+              <ul class="detail-list">
+                <li>Saddle quern: flat bottom stone with a slight hollow, smaller hand stone worked back and forth over grain. Slow — one person produces roughly 1kg flour per hour</li>
+                <li>Rotary quern: two circular stones, upper stone rotated by a wooden handle over the fixed lower stone. 3× faster than saddle quern. Requires shaping two matched stones — worth the investment</li>
+                <li>Sieve flour after grinding to remove stone grit and coarse bran — early querns produce rough flour with stone fragments. Never skip sieving</li>
+                <li>Store flour in sealed clay pots. Flour absorbs moisture rapidly and spoils faster than whole grain — grind as needed where possible</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Agriculture (13)</span><span class="dep-tag">Wooden Vessels (17)</span><span class="dep-tag">Pottery (25)</span><span class="dep-tag">Cordage (07)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Bread & Sourdough (20)</span><span class="dep-tag">Water Wheel (26)</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Grain Storage (52)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 20 — BREAD & SOURDOUGH -->
+        <div class="knowledge-card domain-food" data-domain="food" data-scale="solo small village" data-phase="2" data-keywords="bread sourdough yeast ferment flatbread leavened oven bake flour dough starter wild">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Food — Bread</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Bread & Sourdough</div>
+            <div class="card-lead">Flatbread can be made the first day you have flour. Leavened bread requires capturing wild yeast — a process that takes a week but produces a starter culture you keep indefinitely.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Flatbread — immediate, no yeast required</div>
+              <ol class="detail-steps">
+                <li>Mix flour with enough water to form a stiff dough. Add a pinch of salt if available</li>
+                <li>Knead for 5 minutes until smooth. Divide into balls, flatten each to 3–5mm thickness</li>
+                <li>Cook directly on a flat hot stone beside the fire, or in a dry clay pot used as a pan</li>
+                <li>2–3 minutes per side until lightly browned and firm. Eaten immediately — stales quickly</li>
+                <li>Unleavened bread is nutritionally complete and fully satisfying — do not wait for yeast before eating bread</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Capturing wild yeast — sourdough starter</div>
+              <ol class="detail-steps">
+                <li>Mix equal parts flour and water (roughly 50g each) in a clean clay pot</li>
+                <li>Leave uncovered in a warm spot — room temperature or near the fire, not directly on it</li>
+                <li>After 24 hours: discard half, add another 50g flour and 50g water. Stir</li>
+                <li>Repeat the discard-and-feed cycle every 24 hours. Bubbles appear in 3–7 days — wild yeast from the flour and air has colonized the mixture</li>
+                <li>When it reliably doubles in size between feedings and smells pleasantly sour, it is ready to use</li>
+                <li>Never use all of it — always reserve at least 50g as your perpetual starter. Feed and it lives indefinitely</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Baking leavened bread</div>
+              <ol class="detail-steps">
+                <li>Mix flour, water, salt, and a portion of active starter (roughly 20% of total flour weight)</li>
+                <li>Knead thoroughly until dough is smooth and elastic — 10 minutes</li>
+                <li>Rest in a warm place for 4–8 hours until doubled in size</li>
+                <li>Shape and place in a clay pot with a lid, or directly on a hot flat stone under a clay bowl to trap steam</li>
+                <li>Fire must be steady, not roaring. Bake 30–45 minutes. Done when the bottom sounds hollow when tapped</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">The starter as community asset</div>
+              <div class="detail-text">A healthy sourdough starter is a living culture that can be maintained for generations. Multiple copies stored in different households protect against loss. The microbial community in a mature starter is uniquely adapted to your local grains and environment — it improves with age and cannot be quickly replicated if lost. Treat it with the same care as your seed stock.</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Grain Processing (19)</span><span class="dep-tag">Salt (18)</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Pottery (25)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Food Preservation (14)</span><span class="dep-tag">Trade (58)</span><span class="dep-tag">Alcohol (40)</span><span class="dep-none">same yeast principle</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 21 — ANIMAL HUSBANDRY -->
+        <div class="knowledge-card domain-food" data-domain="food" data-scale="small village" data-phase="2" data-keywords="animals livestock goat sheep pig chicken cattle domestication fence herd breed milk wool meat">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🌾 Food — Livestock</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Animal Husbandry — First Steps</div>
+            <div class="card-lead">A domesticated animal produces food, materials, and labor — indefinitely and renewably. One breeding pair properly managed returns its investment within a single season.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Species priority — easiest to hardest to manage</div>
+              <ul class="detail-list">
+                <li>Chickens — lowest input, high return. Foraging birds need minimal feed, produce eggs daily, reproduce quickly. Start here. Require only a simple roost and basic fencing</li>
+                <li>Goats — hardiest of the large animals, eat almost anything, produce milk year-round, provide meat and hide. Escape artists — fencing must be deliberate. Most useful animal in resource-poor environments</li>
+                <li>Sheep — wool, milk, meat. Less aggressive than goats, better grass managers, but require more water. Ideal for settled grassland environments</li>
+                <li>Pigs — highest caloric return per kg of feed, efficient converters of food waste. Cannot be milked, but provide lard (cooking fat, soap), leather, and meat. Do not put pigs near crop fields — they root and destroy</li>
+                <li>Cattle — highest labor return (traction for plow and transport) plus milk and meat, but require the most land and water. Phase 3+ animal — establish plant food security first</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Acquisition and initial taming</div>
+              <ul class="detail-list">
+                <li>Young animals (juveniles, not adults) are far easier to tame. Capture young and hand-feed daily — imprinting on humans creates manageable animals within weeks</li>
+                <li>Minimum viable herd: 2 females and 1 male for any breeding program. Single animals become distressed and underperform</li>
+                <li>Separate aggressive individuals early — one dominant animal that challenges humans damages the whole herd's tameness</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Basic fencing and housing</div>
+              <ul class="detail-list">
+                <li>Woven wattle panels (same technique as wattle & daub walls) make effective portable fencing for sheep and pigs</li>
+                <li>Goats require taller barriers and tensioned cordage at top to prevent climbing</li>
+                <li>Night shelter is critical — predators are nocturnal. A simple roofed enclosure with a door reduces losses dramatically</li>
+                <li>Rotate grazing areas — animals on the same land year-round deplete grass and build up parasites in soil</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Selective breeding — simple rules</div>
+              <div class="detail-text">Keep only the best individuals for breeding: highest milk producers, fastest growers, calmest temperament. Cull poor performers for meat — do not let sentimentality override selection. Within 3–5 generations of consistent selection, measurable improvements appear. This is the same process that transformed wolves into dogs and wild grasses into wheat — it works, and it works faster with large litters (pigs, chickens) than slow-reproducing species (cattle).</div>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Shelter (03)</span><span class="dep-tag">Cordage (07)</span><span class="dep-tag">Agriculture (13)</span><span class="dep-none">for feed surplus</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Soap (12)</span><span class="dep-tag">Leather (22)</span><span class="dep-tag">Textile (30)</span><span class="dep-tag">The Plow (33)</span><span class="dep-tag">Oil Pressing (37)</span><span class="dep-tag">Beekeeping (38)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 22 — LEATHER TANNING -->
+        <div class="knowledge-card domain-tools" data-domain="tools" data-scale="solo small village" data-phase="2" data-keywords="leather tan hide skin brain bark oak tannin waterproof clothes shoes bag bellows strap">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚒ Tools — Materials</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Leather Tanning</div>
+            <div class="card-lead">Untreated hide rots in days. Properly tanned leather lasts decades. It becomes footwear, clothing, bags, straps, bellows for the forge, and drum skins — the versatile material of the pre-metal world.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Hide preparation — same for all methods</div>
+              <ol class="detail-steps">
+                <li>Fresh hide: remove immediately after the kill. Do not let it dry with flesh still on it</li>
+                <li>Flesh side up: scrape off all fat and membrane with a bone scraper or dull stone blade on a log beam</li>
+                <li>Hair removal: soak hide in wood ash and water solution for 2–5 days until hair slides off with light pressure. Or scrape hair off while fresh</li>
+                <li>Rinse thoroughly in clean water. Hide is now ready for tanning</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Method 1 — Brain tanning (softest leather, best for clothing)</div>
+              <ol class="detail-steps">
+                <li>Every animal has exactly enough brain to tan its own hide — this is not a coincidence</li>
+                <li>Mash fresh or reconstituted brain with water into a liquid emulsion</li>
+                <li>Work the emulsion thoroughly into the damp hide — use hands, knead and fold repeatedly for 1–2 hours</li>
+                <li>Allow to dry slightly, then stretch and work the hide continuously as it dries — this prevents stiffening. This is the labor-intensive phase: 2–4 hours of constant working</li>
+                <li>Smoke the finished hide over a low fire for 2–4 hours — smoking sets the oils and makes the leather washable and water-resistant. Unsmoked brain tan stiffens if it gets wet</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Method 2 — Bark tanning (most durable, best for soles and straps)</div>
+              <ol class="detail-steps">
+                <li>Bark source: oak, chestnut, willow, hemlock — any bark with high tannin content (test: strongly astringent/bitter taste)</li>
+                <li>Grind or pound bark coarsely. Pack into a pit or large wooden vessel, alternating layers of bark and hide</li>
+                <li>Cover with water and let soak 2–6 months — longer produces harder, more durable leather</li>
+                <li>Check monthly. Ensure hide is fully submerged — exposed sections dry and stiffen unevenly</li>
+                <li>Remove, rinse, dry slowly in shade. Oil with animal fat for suppleness</li>
+              </ol>
+            </div>
+            <div class="scale-note"><strong>Solo:</strong> Brain tan a small hide in one day — it is immediate and requires no infrastructure. <strong>Village:</strong> Establish a bark tanning pit as a communal facility. Cycle 6–8 hides simultaneously in ongoing rotation. A tanner produces more leather than the village can consume and trades the surplus.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Food Procurement (06)</span><span class="dep-tag">Bone Tools (11)</span><span class="dep-tag">Water (01)</span><span class="dep-tag">Fire (02)</span><span class="dep-none">for smoking</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Textile (30)</span><span class="dep-tag">Blacksmithing (41)</span><span class="dep-none">bellows</span><span class="dep-tag">Trade (58)</span><span class="dep-tag">Footwear</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 23 — CHARCOAL PRODUCTION -->
+        <div class="knowledge-card domain-fire" data-domain="fire" data-scale="small village" data-phase="2" data-keywords="charcoal wood burn mound kiln smolder fuel high heat forge smelting cooking prerequisite">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🔥 Fire — Charcoal</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Charcoal Production</div>
+            <div class="card-lead">Charcoal burns twice as hot as wood and produces almost no smoke. It is a prerequisite for smelting, high-temperature pottery, and lime burning. Without it, the metallurgy phase cannot begin.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">The principle</div>
+              <div class="detail-text">Charcoal is wood that has been heated in the near-absence of oxygen until moisture and volatile compounds burn off, leaving almost pure carbon. The carbon then burns at much higher temperatures than raw wood, with little smoke and highly controllable combustion. The process is called pyrolysis — you are not burning the wood, you are cooking it.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Earth mound method — simplest, no infrastructure</div>
+              <ol class="detail-steps">
+                <li>Select a dry, windless site. Use dry hardwood — oak, beech, birch. Softwoods produce inferior charcoal</li>
+                <li>Stack wood in a dense mound around a central vertical pole. Mound should be 1.5–2m high, roughly conical</li>
+                <li>Remove the central pole — this creates a chimney channel to the top</li>
+                <li>Cover the entire mound with a layer of turf, damp soil, or leaves — 10–15cm thick. Leave the chimney channel open at the top and small air holes at the base</li>
+                <li>Light through the chimney channel at the top. Once burning, partially close the chimney with a soil cap</li>
+                <li>Monitor continuously for 2–3 days. Thin blue-gray smoke = correct smoldering. Thick white smoke = too much air — close holes. Yellow or bright flame visible = emergency — seal that point immediately</li>
+                <li>When smoke stops and the mound has clearly collapsed inward, seal all holes completely. Cool for 24 hours minimum before opening</li>
+                <li>Output: roughly 25% of original wood weight as charcoal</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Quality testing</div>
+              <ul class="detail-list">
+                <li>Good charcoal: black throughout, rings when struck like pottery, no brown or grey sections</li>
+                <li>Grey sections = incomplete conversion. Can be re-processed but less efficient</li>
+                <li>Charcoal absorbs moisture readily — store in sealed bark containers or pottery and use promptly</li>
+              </ul>
+            </div>
+            <div class="scale-note"><strong>Village:</strong> One large mound (2m) provides charcoal for 2–3 weeks of forge work. Assign charcoal production as a dedicated role — it requires continuous monitoring and cannot be left unattended. Always produce surplus — a forge that runs out of charcoal mid-process wastes the heat investment.</div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Fire (02)</span><span class="dep-none">and dry hardwood</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Pottery (25)</span><span class="dep-tag">Lime (24)</span><span class="dep-tag">Iron Smelting (39)</span><span class="dep-tag">Blacksmithing (41)</span><span class="dep-tag">Glass (54)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY 24 — LIME PRODUCTION -->
+        <div class="knowledge-card domain-shelter" data-domain="shelter" data-scale="small village" data-phase="2" data-keywords="lime limestone calcium kiln burn mortar render whitewash plaster disinfect building">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🏚 Shelter — Materials</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Lime Production</div>
+            <div class="card-lead">Burnt limestone produces quicklime — which becomes mortar, plaster, whitewash, and disinfectant. It makes permanent masonry possible and kills pathogens on contact. One of the most broadly useful chemical processes available before the industrial era.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Finding limestone</div>
+              <ul class="detail-list">
+                <li>Limestone: pale grey or white rock, often forms cliffs, riverbeds, and rolling low hills. Fizzes visibly when a drop of vinegar or acidic liquid is applied — this is the definitive field test</li>
+                <li>Seashells and coral are calcium carbonate and produce usable lime when burned — useful in coastal areas without stone deposits</li>
+                <li>Marble is dense limestone and works but is harder to burn through</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Burning — producing quicklime (CaO)</div>
+              <ol class="detail-steps">
+                <li>Build a simple kiln: a cylindrical stack of stones, 1m diameter, 1m tall, with an arched opening at the base for fuel</li>
+                <li>Fill with alternating layers of limestone and fuel (charcoal or dense hardwood)</li>
+                <li>Fire must reach and sustain 900°C+ for several hours — use bellows if available</li>
+                <li>Burn for 6–12 hours until stones are visibly changed — lighter, more crumbly, chalky appearance</li>
+                <li>Allow to cool. The result is quicklime — handle with extreme care. Contact with water causes intense heat and can cause burns</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Slaking — producing slaked lime (Ca(OH)₂)</div>
+              <ol class="detail-steps">
+                <li>Add quicklime to water slowly — not the other way around. The reaction is violent and boiling</li>
+                <li>Use a large wooden trough or pit. Add small amounts of quicklime at a time, stir constantly</li>
+                <li>The resulting paste is slaked lime — stable, safe to handle, and the working material for most applications</li>
+                <li>Age the paste for weeks or months — older lime putty is more workable and produces stronger mortar</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Uses</div>
+              <ul class="detail-list">
+                <li>Mortar — mix slaked lime with sand (1:3 ratio). Sets hard, holds stone and brick construction</li>
+                <li>Limewash/whitewash — dilute lime putty with water, paint onto walls. Reflects light, kills surface mold and bacteria, seals earthen walls against rain</li>
+                <li>Disinfectant — pure quicklime spread in latrines, over animal waste, and dead bodies dramatically reduces pathogen spread</li>
+                <li>Soil amendment — reduces soil acidity, improves clay-heavy farmland</li>
+                <li>Leather tanning — ash-and-lime solution removes hair from hides more quickly than ash alone</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Charcoal (23)</span><span class="dep-tag">Territory Map (10)</span><span class="dep-none">to find limestone</span><span class="dep-tag">Wooden Vessels (17)</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">Wattle & Daub (15)</span><span class="dep-tag">Dry Stone (36)</span><span class="dep-tag">Brick Making (42)</span><span class="dep-tag">Sanitation (55)</span><span class="dep-tag">Leather (22)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <!-- ENTRY — LIGHTING -->
+        <div class="knowledge-card domain-fire" data-domain="fire" data-scale="solo small village" data-phase="2" data-keywords="light torch candle lamp oil tallow rush wick fat grease dark night work extend">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🔥 Fire — Lighting</div>
+              <div class="card-scales"><span class="scale-badge scale-solo">Solo</span><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Lighting — Extending the Productive Day</div>
+            <div class="card-lead">Without artificial light, you lose half your productive time in winter and all evening hours year-round. Each step in the lighting chain is a measurable increase in community output.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Progression — make in this order</div>
+              <div class="detail-text">Torch → Rush light → Tallow candle → Oil lamp. Each requires more materials and preparation, but each is significantly more efficient, longer-burning, and safer than the last. Start where you are and work up the chain.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">1. Torch — immediate, no processing required</div>
+              <ul class="detail-list">
+                <li>Wrap dry resinous material (pine bark, birch bark, cattail head) tightly around a stick end with cordage</li>
+                <li>Soak the head briefly in animal fat or pine resin before lighting — dramatically extends burn time</li>
+                <li>Burns 15–30 minutes depending on material and fat content</li>
+                <li>Produces significant smoke — use outdoors or in well-ventilated spaces. Carbon monoxide accumulates in enclosed areas with torches</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">2. Rush light — 1–3 hours, minimal materials</div>
+              <ol class="detail-steps">
+                <li>Harvest bulrush stems (Juncus) in summer. Peel back the outer skin, leaving one thin strip to support the pith</li>
+                <li>Dry for several days until completely moisture-free</li>
+                <li>Melt tallow (rendered animal fat) in a shallow vessel</li>
+                <li>Draw the rush slowly through the molten tallow, coating the pith fully</li>
+                <li>Allow to harden. Repeat 2–3 times to build up coating</li>
+                <li>Burn held at an angle in a simple notched stick holder. Burns 1–3 hours with a clean flame and minimal smoke</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">3. Tallow candle — 4–6 hours, reusable</div>
+              <ol class="detail-steps">
+                <li>Wick: twisted cotton fiber, plant fiber, or thin cordage. Loosely twisted holds more fuel than tightly wound</li>
+                <li>Dipping method: suspend wick, dip into molten tallow, remove, let harden 30 seconds, repeat 20–30 times until desired thickness</li>
+                <li>Mold method: pour molten tallow around a suspended wick in a clay or bark mold. Faster for multiple candles</li>
+                <li>Beeswax candles burn cleaner, longer, and without the smell of tallow — a significant quality-of-life improvement when beeswax is available</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">4. Oil lamp — most efficient, indefinitely refillable</div>
+              <ul class="detail-list">
+                <li>Any shallow vessel with a lip — a clay saucer, a shell, a hollowed stone — filled with animal fat or plant oil</li>
+                <li>Wick draped over the lip, one end in the oil, tip protruding over the edge. The oil wicks up and burns at the tip</li>
+                <li>Best oils: olive (if available), fish oil, rendered lard, rendered bear fat. Any liquid fat works</li>
+                <li>A lamp burns 8+ hours on a small amount of fat with minimal smoke if the wick is correctly sized — too thick produces more smoke, too thin gutters out</li>
+                <li>Glass chimney (Phase 5) dramatically improves efficiency and eliminates draughts extinguishing the flame</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-deps">
+            <div class="dep-group dep-requires"><span class="dep-label">Requires</span><span class="dep-tag">Fire (02)</span><span class="dep-tag">Animal Husbandry (21)</span><span class="dep-none">for fat</span><span class="dep-tag">Pottery (25)</span><span class="dep-none">for lamp vessel</span></div>
+            <div class="dep-group dep-enables"><span class="dep-label">Enables</span><span class="dep-tag">All craft work after dark</span><span class="dep-tag">Writing (53)</span><span class="dep-tag">Glass lamp (54)</span><span class="dep-tag">Blacksmithing (41)</span></div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PHASE 3 — SETTLEMENT                            -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="phase-block" data-phase-color="3" data-phase="3">
+      <div class="phase-header">
+        <div>
+          <div class="phase-tag">Phase 3</div>
+          <div class="phase-title">Settlement</div>
+          <div class="phase-timeline">Month 3 → Year 2</div>
+          <div class="phase-desc">Specialization begins. Not everyone farms. Potters, toolmakers, healers. Energy captured from water and wind. Surplus changes everything.</div>
+        </div>
+        <div class="phase-number-large">3</div>
+      </div>
+      <div class="cards-grid">
+
+        <div class="knowledge-card domain-tools" data-domain="tools" data-scale="small village" data-phase="3" data-keywords="pottery clay ceramic pot bowl cook fire kiln">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚒ Tools — Pottery</div>
+              <div class="card-scales"><span class="scale-badge scale-small">Small</span><span class="scale-badge scale-village">Village</span></div>
+            </div>
+            <div class="card-title">Pottery — Containers Change Civilization</div>
+            <div class="card-lead">Fired clay vessels enable food storage, water carrying, and cooking. Pottery is arguably the technology that made sedentary civilization possible.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Clay sourcing & preparation</div>
+              <ul class="detail-list">
+                <li>Find: riverbanks, lake shores, cliff faces — look for smooth, sticky, grey or red soil</li>
+                <li>Test: roll in your palm — good clay holds a thin coil without cracking</li>
+                <li>Wedge clay (knead thoroughly) to remove air bubbles — air pockets explode in firing</li>
+                <li>Add grog (crushed fired clay or fine sand) at 20–30% to reduce shrinkage cracking</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Hand-building (no wheel required)</div>
+              <ol class="detail-steps">
+                <li>Pinch method: start with a ball, push thumb in center, pinch walls up and outward. Good for small vessels</li>
+                <li>Coil method: roll clay into long ropes, stack in circles, smooth joints inside and out. Larger vessels possible</li>
+                <li>Smooth with a smooth stone or bone — compresses surface and improves waterproofing</li>
+                <li>Dry slowly in shade — never in direct sun or rapid heat (causes cracking)</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Firing</div>
+              <ol class="detail-steps">
+                <li>Bone-dry only — any moisture turns to steam and explodes the piece</li>
+                <li>Pit firing: dig shallow pit, stack wood + pots, cover with more wood. Fire to 900°C+</li>
+                <li>Burn at least 2–3 hours. Let cool slowly in the pit — do not remove while hot</li>
+                <li>Higher temperature = harder, more watertight. Kiln (enclosed fire structure) allows higher, controlled temperatures</li>
+              </ol>
+            </div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-energy" data-domain="energy" data-scale="village city" data-phase="3" data-keywords="waterwheel mill water power grinding wheel energy mechanical">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚙ Mechanical Energy</div>
+              <div class="card-scales"><span class="scale-badge scale-village">Village</span><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Water Wheel — Capturing Mechanical Power</div>
+            <div class="card-lead">A waterwheel replaces dozens of human workers. One wheel on a fast stream can grind grain, saw wood, or operate bellows 24 hours a day.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Site selection</div>
+              <ul class="detail-list">
+                <li>Need: consistent water flow, minimum 30cm drop (undershot) or 1–2m drop (overshot)</li>
+                <li>Overshot (water falls onto top of wheel) is 4× more efficient than undershot (water pushes bottom)</li>
+                <li>Build a mill race (channel) to control and direct water to the wheel</li>
+                <li>Plan for drought — most streams slow or stop. Design for minimum flow period</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Construction</div>
+              <ol class="detail-steps">
+                <li>Hub: a thick hardwood log with a squared axle — must be very strong, all force transmits through it</li>
+                <li>Spokes: 8–12 hardwood spokes, mortised into hub and into the rim</li>
+                <li>Rim: sections of curved hardwood, joined and pegged</li>
+                <li>Paddles/Buckets: for overshot, create buckets that fill with water at top. For undershot, flat paddles</li>
+                <li>Bearings: hardwood blocks with carved cup, or iron if available — lubricate with animal fat</li>
+                <li>Transmit power via the axle to millstones or a gear system</li>
+              </ol>
+            </div>
+            <div class="scale-note"><strong>Village scale:</strong> A 2m overshot wheel on a reasonable stream generates approximately 1–2 horsepower — enough to grind grain for 50–100 people. Two people to operate vs. ten grinding by hand.</div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-society" data-domain="society" data-scale="village city" data-phase="3" data-keywords="community organization governance food storage distribution labor division role">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🏛 Society</div>
+              <div class="card-scales"><span class="scale-badge scale-village">Village</span><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Community Organization & Labor Division</div>
+            <div class="card-lead">The moment you have more than 10 people, informal organization breaks down. Explicit roles and shared rules determine whether a group thrives or fractures.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Minimum viable organization</div>
+              <ul class="detail-list">
+                <li>Designate a food steward: accountable for inventory, rationing, and storage</li>
+                <li>Designate a medical officer: even if untrained — one person dedicated to health management</li>
+                <li>Designate a tools keeper: inventory, repair, allocation of critical tools</li>
+                <li>Document decisions — even scratched on clay — so future members understand why rules exist</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Labor allocation rules (tested across history)</div>
+              <ul class="detail-list">
+                <li>Food production first: minimum 40% of able-bodied labor in early phases</li>
+                <li>No specialization until 3 months food surplus is secured — every specialist is a farmer until then</li>
+                <li>Children aged 8+: real, meaningful contributions (herding, foraging, tending fire)</li>
+                <li>Elderly: knowledge, crafts, childcare — never idle, never marginalized</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Preventing catastrophic knowledge loss</div>
+              <ul class="detail-list">
+                <li>Every critical skill must be known by at least two people — never allow single points of failure</li>
+                <li>Cross-train deliberately: the soap maker teaches the farmer, the healer teaches two apprentices</li>
+                <li>Begin writing system as soon as possible — even simple pictographic records</li>
+                <li>Oral tradition is powerful but degrades. Physical records persist</li>
+              </ul>
+            </div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PHASE 4 — GROWTH                                -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="phase-block" data-phase-color="4" data-phase="4">
+      <div class="phase-header">
+        <div>
+          <div class="phase-tag">Phase 4</div>
+          <div class="phase-title">Growth</div>
+          <div class="phase-timeline">Year 1 → Year 10</div>
+          <div class="phase-desc">Metallurgy changes everything. Metal tools multiply agricultural output. Surplus creates trade. Trade creates specialization. Specialization accelerates everything else.</div>
+        </div>
+        <div class="phase-number-large">4</div>
+      </div>
+      <div class="cards-grid">
+
+        <div class="knowledge-card domain-tools" data-domain="tools" data-scale="village city" data-phase="4" data-keywords="metal iron smelt forge charcoal ore bloom iron steel blacksmith bellows">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚒ Metallurgy</div>
+              <div class="card-scales"><span class="scale-badge scale-village">Village</span><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Smelting Iron — The Civilization Accelerant</div>
+            <div class="card-lead">Iron is 100× more useful than stone and stone is everywhere. Iron ore exists in almost all soil — rust-red rocks near water, bog iron in wetlands. You are probably standing near some right now.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Finding iron ore</div>
+              <ul class="detail-list">
+                <li>Bog iron: brownish-orange crust in wetlands and pond bottoms. Regenerates every 20–30 years — renewable resource</li>
+                <li>Hematite: rust-red or dark grey heavy rock. Common in hillsides</li>
+                <li>Test: a lodestone (magnet) will attract iron-bearing ore</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Making charcoal (required for smelting)</div>
+              <ol class="detail-steps">
+                <li>Stack hardwood in a mound 2m high, densely packed</li>
+                <li>Cover with turf/soil, leaving air holes at base and one at top</li>
+                <li>Light at the top. Control airflow via holes — you want smoldering, not burning</li>
+                <li>Burn for 2–3 days. Denser smoke = incomplete conversion. Thin blue smoke = almost done</li>
+                <li>Seal all holes and let cool 24 hours before uncovering. Charcoal burns twice as hot as wood</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Bloomery smelting (simplest iron production)</div>
+              <ol class="detail-steps">
+                <li>Build a clay shaft furnace 1m tall, 30cm internal diameter. Tuyère hole at bottom for bellows</li>
+                <li>Preheat furnace to red heat before adding ore</li>
+                <li>Alternating layers: charcoal then iron ore (roughly 1:1 ratio by volume)</li>
+                <li>Pump bellows continuously — one person per bellows, 2 hours minimum</li>
+                <li>Temperatures reach 1200–1400°C. Iron won't fully melt (melting point 1538°C) but ore reduces to metallic iron</li>
+                <li>Extract the bloom (spongy iron mass) while hot. Hammer immediately to expel slag</li>
+                <li>Reheat and hammer repeatedly — this is wrought iron, workable and strong</li>
+              </ol>
+            </div>
+            <div class="scale-note"><strong>Village:</strong> 2 people operating bellows + 1 smelter to manage the process. One smelt yields 2–5 kg usable iron — enough for axe heads, chisels, and knife blades. Build multiple bloomeries as population grows.</div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-health" data-domain="health" data-scale="village city" data-phase="4" data-keywords="medicine antiseptic alcohol distillation plant medicine surgery infection herbal pharmacy">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚕ Medicine</div>
+              <div class="card-scales"><span class="scale-badge scale-village">Village</span><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Producing Alcohol — Antiseptic & Anesthetic</div>
+            <div class="card-lead">Fermented and distilled alcohol is the most important medicine you can produce without a laboratory. Sterilizes wounds, preserves herbal preparations, enables safe surgery.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Fermentation (produces wine/beer, 5–15% alcohol)</div>
+              <ol class="detail-steps">
+                <li>Source: crushed fruit, grain mash, honey + water (mead), or any sugar-containing liquid</li>
+                <li>Wild yeast is on grape skins and in the air — no added yeast needed for fruit</li>
+                <li>Seal in a clay pot with a loose cover — allows CO₂ to escape but limits contamination</li>
+                <li>Fermentation visible in 24–48 hours (bubbling). Complete in 1–3 weeks when bubbling stops</li>
+                <li>Strain and bottle. Fermented liquid is stable for months</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Distillation (40–80% alcohol — medicinal strength)</div>
+              <ol class="detail-steps">
+                <li>Heat fermented liquid in a sealed clay or metal vessel</li>
+                <li>Pass the steam through a coiled copper or clay tube running through cold water</li>
+                <li>Alcohol boils at 78°C, water at 100°C — the first liquid to condense is alcohol-rich</li>
+                <li>Discard the first 5% of output (methanol-rich — toxic). Collect middle fraction</li>
+                <li>Test strength: if it burns with a blue flame, it is above 50% alcohol — medicinal grade</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Medical uses</div>
+              <ul class="detail-list">
+                <li>Wound antiseptic: 50%+ alcohol kills most pathogens on contact</li>
+                <li>Herbal extraction: soak medicinal plants in alcohol to extract active compounds (tinctures)</li>
+                <li>Anesthetic: not ideal, but 2 shots significantly reduces pain perception for minor surgery</li>
+                <li>Preservation: instruments, suture materials</li>
+              </ul>
+            </div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PHASE 5 — CIVILIZATION                          -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="phase-block" data-phase-color="5" data-phase="5">
+      <div class="phase-header">
+        <div>
+          <div class="phase-tag">Phase 5</div>
+          <div class="phase-title">Civilization</div>
+          <div class="phase-timeline">Year 5 → Decades</div>
+          <div class="phase-desc">Knowledge preservation becomes critical. Glass, paper, writing. Standardization. Education systems. The difference between a village that stagnates and one that grows into a civilization is whether knowledge compounds across generations.</div>
+        </div>
+        <div class="phase-number-large">5</div>
+      </div>
+      <div class="cards-grid">
+
+        <div class="knowledge-card domain-society" data-domain="society" data-scale="city" data-phase="5" data-keywords="writing alphabet language record knowledge preserve script clay tablet paper">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🏛 Knowledge</div>
+              <div class="card-scales"><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Writing Systems & Knowledge Preservation</div>
+            <div class="card-lead">Writing is not decoration. Without it, every generation must rediscover everything. Writing is how knowledge escapes the mortality of individual humans.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Starting a writing system</div>
+              <ul class="detail-list">
+                <li>Begin pictographic: one symbol per concept (sun, water, grain, person). No linguistic knowledge required</li>
+                <li>Evolve to phonetic: symbols represent sounds, not things. 20–30 symbols can encode all speech</li>
+                <li>Alphabetic systems are most flexible — invest in developing one even if it takes years</li>
+                <li>Standardize immediately — multiple writing systems in one community is catastrophic for accumulation</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Making paper (from plant fiber)</div>
+              <ol class="detail-steps">
+                <li>Source: inner bark of mulberry, nettles, flax, or cotton — boil until fibers separate</li>
+                <li>Beat fibers into a pulp in water</li>
+                <li>Suspend a framed mesh in the vat, lift to catch a thin layer of fiber</li>
+                <li>Transfer to a flat surface, press, and dry under weight</li>
+                <li>One sheet takes 30 min. A dedicated papermaker produces 100+ sheets per day</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Clay tablets (faster to start)</div>
+              <div class="detail-text">Fresh clay, a stylus (cut reed or bone), and a kiln. Fired clay tablets last thousands of years — most of what we know of ancient Mesopotamia comes from clay. Begin recording here before paper is available. Prioritize: agricultural records, medical knowledge, and this index.</div>
+            </div>
+            <div class="scale-note"><strong>Priority order for what to write down first:</strong> 1) Crop yields and planting calendars, 2) Medical knowledge, 3) Construction techniques, 4) Legal rules (resource rights), 5) History and context of how you got here. Do not let this knowledge exist only in living minds.</div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-tools" data-domain="tools" data-scale="city" data-phase="5" data-keywords="glass making silica sand lime furnace lens optical">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">⚒ Advanced Materials</div>
+              <div class="card-scales"><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Glass Production</div>
+            <div class="card-lead">Glass enables lenses (optics, medicine, fire-starting), sealed storage, and scientific observation. It requires only sand, ash, and extreme heat — all available from early phases.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Raw materials</div>
+              <ul class="detail-list">
+                <li>Silica: clean white or pale river sand, ground quartz, or crushed flint</li>
+                <li>Flux (lowers melting point): wood ash (potassium carbonate) or seashell ash (calcium)</li>
+                <li>Stabilizer: seashells, limestone — prevents the glass from dissolving in water</li>
+                <li>Basic recipe: 60% silica + 25% ash + 15% limestone by weight</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Process</div>
+              <ol class="detail-steps">
+                <li>Mix batch. Fire requires 1200–1400°C — only achievable with a properly designed furnace and bellows</li>
+                <li>Furnace: domed clay structure, continuous fuel feed, forced air via bellows through multiple tuyères</li>
+                <li>Melt until fluid (1–3 hours). Skim off surface scum</li>
+                <li>Gather on an iron blowpipe or ladled into molds</li>
+                <li>Blow, press, or pour into flat sheets (pour onto flat stone, press flat with another)</li>
+                <li>Anneal: cool very slowly in a lower-temperature chamber — rapid cooling causes stress fractures</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">First applications by priority</div>
+              <ul class="detail-list">
+                <li>Storage vessels — airtight and non-reactive for medicine and acids</li>
+                <li>Lenses — ground glass lens for fire-starting, magnification, and eventually eyeglasses</li>
+                <li>Window glass — flat poured sheets. Transforms indoor living and extends productive daylight hours</li>
+              </ul>
+            </div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+        <div class="knowledge-card domain-hygiene" data-domain="hygiene" data-scale="village city" data-phase="5" data-keywords="sanitation sewage waste water disease cholera germ public health latrine toilet">
+          <div class="card-top">
+            <div class="card-domain-line">
+              <div class="card-domain">🫧 Public Hygiene</div>
+              <div class="card-scales"><span class="scale-badge scale-village">Village</span><span class="scale-badge scale-city">City</span></div>
+            </div>
+            <div class="card-title">Sanitation Systems — The Invisible Killer</div>
+            <div class="card-lead">More historical civilizations collapsed from sanitation failures than from war. Contaminated water killed the Roman Empire city by city. Design waste systems before you need them.</div>
+          </div>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <div class="detail-section">
+              <div class="detail-label">Core principle</div>
+              <div class="detail-text">Human waste → pathogens (cholera, typhoid, dysentery) → water supply → mass death. The solution is always the same: separate waste from water, and separate water intake from waste output. Downstream latrines, upstream water intake. Always.</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Pit latrines (minimum viable)</div>
+              <ol class="detail-steps">
+                <li>Dig 2m deep × 1m wide. Locate minimum 30m downhill from water sources and habitation</li>
+                <li>Cover with wooden platform with hole — reduces flies and smell</li>
+                <li>When 3/4 full: fill with soil, dig a new pit, move the platform</li>
+                <li>Mark old pits clearly — filled pits are excellent garden fertilizer after 6 months</li>
+              </ol>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Gray water (washing, cooking)</div>
+              <ul class="detail-list">
+                <li>Never dump gray water near drinking water sources — soap and food waste contaminate</li>
+                <li>Simple drain into a gravel-filled pit (soakaway) at minimum 15m from water</li>
+              </ul>
+            </div>
+            <div class="detail-section">
+              <div class="detail-label">Composting human waste (night soil)</div>
+              <div class="detail-text">Mixed with dry material (straw, ash, soil) in correct ratio, human waste composts safely in 6–12 months. Temperatures in an active compost pile reach 60°C — killing pathogens. The result is exceptional fertilizer. East Asian civilizations sustained dense populations for centuries using this system. The knowledge gap in the West caused preventable death for centuries.</div>
+            </div>
+          </div>
+          <button class="card-toggle" onclick="toggleCard(this)">Expand entry ›</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display:none;">No entries match the current filters.</div>
+
+  </main>
+</div>
+
+<footer>
+  <div class="footer-text">The Restart Index — Knowledge for Extreme Continuity</div>
+  <div class="footer-text">Inspired by Dr. Stone · An ongoing archive</div>
+</footer>
+
+<script>
+let activePhase = 'all';
+let activeDomain = 'all';
+let activeScale = 'all';
+let searchQuery = '';
+
+function toggleCard(btn) {
+  const card = btn.closest('.knowledge-card');
+  card.classList.toggle('expanded');
+  btn.textContent = card.classList.contains('expanded') ? 'Collapse ‹' : 'Expand entry ›';
+}
+
+function filterPhase(phase, btn) {
+  activePhase = phase;
+  document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterDomain(domain, btn) {
+  activeDomain = domain;
+  document.querySelectorAll('.sidebar .filter-btn').forEach(b => {
+    if (b.onclick && b.onclick.toString().includes('filterDomain')) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterScale(scale, btn) {
+  activeScale = scale;
+  document.querySelectorAll('.sidebar .filter-btn').forEach(b => {
+    if (b.onclick && b.onclick.toString().includes('filterScale')) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function searchEntries(query) {
+  searchQuery = query.toLowerCase().trim();
+  applyFilters();
+}
+
+function applyFilters() {
+  const cards = document.querySelectorAll('.knowledge-card');
+  const blocks = document.querySelectorAll('.phase-block');
+  let anyVisible = false;
+
+  cards.forEach(card => {
+    const cardPhase = card.getAttribute('data-phase');
+    const cardDomain = card.getAttribute('data-domain');
+    const cardScale = card.getAttribute('data-scale') || '';
+    const cardKeywords = card.getAttribute('data-keywords') || '';
+    const cardText = (card.textContent || '').toLowerCase();
+
+    const phaseOk = activePhase === 'all' || cardPhase === activePhase;
+    const domainOk = activeDomain === 'all' || cardDomain === activeDomain;
+    const scaleOk = activeScale === 'all' || cardScale.includes(activeScale);
+    const searchOk = searchQuery === '' || cardText.includes(searchQuery) || cardKeywords.includes(searchQuery);
+
+    const visible = phaseOk && domainOk && scaleOk && searchOk;
+    card.style.display = visible ? '' : 'none';
+    if (visible) anyVisible = true;
+  });
+
+  // Show/hide phase blocks based on whether they have visible cards
+  blocks.forEach(block => {
+    const blockPhase = block.getAttribute('data-phase');
+    const phaseOk = activePhase === 'all' || blockPhase === activePhase;
+    const hasVisibleCards = [...block.querySelectorAll('.knowledge-card')].some(c => c.style.display !== 'none');
+    block.style.display = (phaseOk && hasVisibleCards) ? '' : 'none';
+  });
+
+  document.getElementById('empty-state').style.display = anyVisible ? 'none' : 'block';
+}
+</script>
+
+</body>
+</html>

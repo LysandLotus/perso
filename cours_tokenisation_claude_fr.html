@@ -1,0 +1,305 @@
+
+<style>
+:root{--accent:#534AB7;--accent-light:#EEEDFE;--accent-mid:#AFA9EC;--teal:#1D9E75;--teal-light:#E1F5EE;--coral:#D85A30;--coral-light:#FAECE7;--amber:#BA7517;--amber-light:#FAEEDA;--green:#3B6D11;--green-light:#EAF3DE;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans,system-ui,sans-serif);color:var(--color-text-primary);background:transparent;}
+.course{max-width:680px;padding:0 0 2rem;}
+.chapter{margin-bottom:2rem;}
+.chapter-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;cursor:pointer;padding:12px 16px;border-radius:var(--border-radius-lg,12px);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);}
+.chapter-header:hover{background:var(--color-background-tertiary);}
+.chapter-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0;}
+.chapter-title{font-size:15px;font-weight:500;flex:1;}
+.chapter-arrow{font-size:12px;color:var(--color-text-secondary);transition:transform .2s;}
+.chapter-arrow.open{transform:rotate(90deg);}
+.chapter-body{padding:0 4px;}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg,12px);padding:1rem 1.25rem;margin-bottom:12px;}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;}
+.highlight-box{border-radius:var(--border-radius-md,8px);padding:10px 14px;margin:10px 0;font-size:14px;line-height:1.6;}
+.hl-purple{background:var(--accent-light,#EEEDFE);color:#3C3489;}
+.hl-teal{background:var(--teal-light,#E1F5EE);color:#085041;}
+.hl-coral{background:var(--coral-light,#FAECE7);color:#993C1D;}
+.hl-amber{background:var(--amber-light,#FAEEDA);color:#633806;}
+.hl-green{background:var(--green-light,#EAF3DE);color:#27500A;}
+p{font-size:14px;line-height:1.7;color:var(--color-text-primary);margin-bottom:8px;}
+.token-demo{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;}
+.tok{padding:3px 8px;border-radius:4px;font-size:13px;font-family:var(--font-mono,monospace);font-weight:500;}
+.tok-1{background:#EEEDFE;color:#3C3489;}
+.tok-2{background:#E1F5EE;color:#085041;}
+.tok-3{background:#FAEEDA;color:#633806;}
+.tok-4{background:#FAECE7;color:#993C1D;}
+.tok-5{background:#EAF3DE;color:#27500A;}
+.tok-6{background:#E6F1FB;color:#0C447C;}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0;}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md,8px);padding:12px;text-align:center;}
+.metric-val{font-size:22px;font-weight:500;color:var(--accent);}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-top:2px;}
+.progress-bar{height:10px;border-radius:5px;background:var(--color-border-tertiary);margin:6px 0;overflow:hidden;}
+.progress-fill{height:100%;border-radius:5px;transition:width .3s;}
+.session-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.session-card{border-radius:var(--border-radius-md);padding:10px 12px;border:0.5px solid var(--color-border-tertiary);}
+.session-card.active{border-color:var(--accent);background:var(--accent-light);}
+.tip-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin:8px 0;}
+.tip-list li{display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.6;}
+.tip-icon{width:20px;height:20px;border-radius:4px;background:var(--teal-light);color:#085041;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px;}
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+.plan-card{border-radius:var(--border-radius-md);padding:10px 12px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);}
+.plan-card.featured{border-color:var(--accent);border-width:1.5px;}
+.plan-badge{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--accent-light);color:#3C3489;display:inline-block;margin-bottom:6px;}
+.plan-name{font-size:14px;font-weight:500;margin-bottom:4px;}
+.plan-price{font-size:20px;font-weight:500;color:var(--accent);}
+.plan-detail{font-size:12px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5;}
+.calc-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:14px;flex-wrap:wrap;}
+.calc-input{width:80px;padding:4px 8px;font-size:14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);}
+.calc-result{font-size:20px;font-weight:500;color:var(--accent);min-width:100px;}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:12px 0;}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;}
+.badge-purple{background:var(--accent-light);color:#3C3489;}
+.badge-teal{background:var(--teal-light);color:#085041;}
+.badge-coral{background:var(--coral-light);color:#993C1D;}
+.badge-amber{background:var(--amber-light);color:#633806;}
+.win-bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px;}
+.win-label{width:130px;color:var(--color-text-secondary);flex-shrink:0;}
+.win-track{flex:1;height:8px;background:var(--color-border-tertiary);border-radius:4px;overflow:hidden;}
+.win-fill{height:100%;border-radius:4px;}
+.section-divider{display:flex;align-items:center;gap:10px;margin:1.5rem 0 1rem;color:var(--color-text-secondary);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;}
+.section-divider::before,.section-divider::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary);}
+</style>
+
+<div class="course">
+
+<div style="padding:16px 0 8px;">
+  <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Formation complète</div>
+  <div style="font-size:22px;font-weight:500;margin-bottom:6px;">Les tokens dans Claude</div>
+  <div style="font-size:14px;color:var(--color-text-secondary);line-height:1.6;">Comprendre la tokenisation, les limites d'usage, comment économiser, et naviguer dans les sessions.</div>
+  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+    <span class="badge badge-purple">7 modules</span>
+    <span class="badge badge-teal">Interactif</span>
+    <span class="badge badge-amber">Pro &amp; Max</span>
+  </div>
+</div>
+
+<div id="chapters"></div>
+
+</div>
+
+<script>
+const chapters=[
+{num:1,title:"Qu'est-ce qu'un token ?",icon:"T",color:"#534AB7",body:`
+<div class="card">
+  <div class="card-title">Définition</div>
+  <p>Un <strong>token</strong> est la plus petite unité de texte que Claude traite. Ce n'est ni un mot, ni un caractère — c'est quelque chose entre les deux, déterminé par un algorithme de <em>Byte Pair Encoding (BPE)</em>.</p>
+  <div class="highlight-box hl-purple">
+    <strong>Règle empirique :</strong> 1 token ≈ 0,75 mot en anglais. En français, c'est souvent légèrement plus (1 mot ≈ 1,2–1,5 tokens) car les mots sont plus longs.
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Exemple de tokenisation</div>
+  <p>Voici comment la phrase <em>"Bonjour, comment allez-vous aujourd'hui ?"</em> se découpe en tokens :</p>
+  <div class="token-demo">
+    <span class="tok tok-1">Bon</span><span class="tok tok-2">jour</span><span class="tok tok-3">,</span><span class="tok tok-4"> comment</span><span class="tok tok-5"> allez</span><span class="tok tok-6">-vous</span><span class="tok tok-1"> aujourd</span><span class="tok tok-2">'hui</span><span class="tok tok-3"> ?</span>
+  </div>
+  <p style="margin-top:8px;">→ <strong>9 tokens</strong> pour 7 mots. En anglais, "Hello, how are you today?" = <strong>6 tokens</strong>.</p>
+</div>
+<div class="card">
+  <div class="card-title">Ce qui est compté comme tokens</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon">T</span>Votre message entrant (prompt)</li>
+    <li><span class="tip-icon">T</span>La réponse de Claude (output)</li>
+    <li><span class="tip-icon">T</span>Tout l'historique de la conversation en cours</li>
+    <li><span class="tip-icon">T</span>Les instructions système (projets, connecteurs)</li>
+    <li><span class="tip-icon">T</span>Les fichiers uploadés et leur contenu</li>
+    <li><span class="tip-icon">T</span>Les outils activés (recherche web, MCP...)</li>
+  </ul>
+</div>
+`},
+{num:2,title:"La fenêtre de contexte (context window)",icon:"W",color:"#1D9E75",body:`
+<div class="card">
+  <div class="card-title">Concept clé</div>
+  <p>La <strong>fenêtre de contexte</strong> est la mémoire active de Claude — tout ce qu'il peut lire en une seule fois pour générer sa réponse. Au-delà de cette limite, Claude ne "voit" plus les messages anciens.</p>
+</div>
+<div class="metric-grid">
+  <div class="metric"><div class="metric-val">200K</div><div class="metric-label">tokens — plans Pro, Max, Team</div></div>
+  <div class="metric"><div class="metric-val">500K</div><div class="metric-label">tokens — plans Enterprise</div></div>
+  <div class="metric"><div class="metric-val">1M</div><div class="metric-label">tokens — Claude Code (bêta)</div></div>
+</div>
+<div class="card">
+  <div class="card-title">En termes concrets</div>
+  <div class="win-bar"><span class="win-label">200K tokens ≈</span><div class="win-track"><div class="win-fill" style="width:60%;background:#534AB7;"></div></div><span style="font-size:13px;">~150 000 mots</span></div>
+  <div class="win-bar"><span class="win-label">Un roman ≈</span><div class="win-track"><div class="win-fill" style="width:40%;background:#1D9E75;"></div></div><span style="font-size:13px;">80–100K mots</span></div>
+  <div class="win-bar"><span class="win-label">Une conv. 20 msg ≈</span><div class="win-track"><div class="win-fill" style="width:15%;background:#BA7517;"></div></div><span style="font-size:13px;">~105 000 tokens</span></div>
+  <div class="win-bar"><span class="win-label">Une conv. 30 msg ≈</span><div class="win-track"><div class="win-fill" style="width:30%;background:#D85A30;"></div></div><span style="font-size:13px;">~232 000 tokens</span></div>
+  <div class="highlight-box hl-coral" style="margin-top:10px;">
+    <strong>Problème cumulatif :</strong> Claude re-lit TOUT l'historique à chaque message. Une conversation de 30 messages peut donc dépasser la limite de 200K tokens, faisant disparaître les anciens échanges.
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Gestion automatique</div>
+  <p>Sur les plans payants avec exécution de code activée, Claude <strong>résume automatiquement</strong> les anciens messages quand la limite approche. L'historique complet reste accessible mais les parties anciennes sont compressées.</p>
+</div>
+`},
+{num:3,title:"Fenêtres de 5h — comment ça marche ?",icon:"5h",color:"#BA7517",body:`
+<div class="card">
+  <div class="card-title">Le système de fenêtre glissante</div>
+  <p>Claude.ai (et Claude Code) fonctionne avec un système de <strong>fenêtre glissante de 5 heures</strong>. Cette fenêtre ne repart pas à zéro à minuit — elle est <em>relative à votre premier message</em>.</p>
+  <div class="highlight-box hl-amber">
+    <strong>Exemple :</strong> Vous envoyez votre premier message à 14h00 → votre quota se recharge à 19h00. Si vous commencez à 23h00, il se recharge à 4h00 du matin.
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Capacité approximative par fenêtre de 5h</div>
+  <div class="session-grid">
+    <div class="session-card"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">Plan Pro</div><div style="font-size:20px;font-weight:500;color:#534AB7;">~45</div><div style="font-size:12px;color:var(--color-text-secondary);">messages / 5h</div></div>
+    <div class="session-card active"><div style="font-size:12px;color:#3C3489;margin-bottom:4px;">Plan Max 5×</div><div style="font-size:20px;font-weight:500;color:#534AB7;">~225</div><div style="font-size:12px;color:#3C3489;">messages / 5h</div></div>
+    <div class="session-card"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">Plan Max 20×</div><div style="font-size:20px;font-weight:500;color:#534AB7;">~900</div><div style="font-size:12px;color:var(--color-text-secondary);">messages / 5h</div></div>
+    <div class="session-card"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">Plan Free</div><div style="font-size:20px;font-weight:500;color:#888780;">~20–40</div><div style="font-size:12px;color:var(--color-text-secondary);">messages / jour</div></div>
+  </div>
+  <div class="highlight-box hl-purple" style="margin-top:8px;">
+    <strong>Important :</strong> Ces chiffres sont en "messages courts". Des messages longs, des fichiers uploadés, ou des outils activés réduisent dramatiquement ce quota.
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Ce qui compte vraiment : les tokens, pas les messages</div>
+  <p>L'interface affiche "messages", mais la vraie limite est en <strong>tokens consommés</strong>. Un message avec un PDF de 50 pages peut coûter autant que 20 messages courts.</p>
+  <ul class="tip-list">
+    <li><span class="tip-icon" style="background:#FAEEDA;color:#633806;">!</span>Recherche web activée = +tokens par réponse</li>
+    <li><span class="tip-icon" style="background:#FAEEDA;color:#633806;">!</span>Connecteurs MCP = +tokens pour les définitions d'outils</li>
+    <li><span class="tip-icon" style="background:#FAEEDA;color:#633806;">!</span>Mode "Extended Thinking" = consommation très élevée</li>
+    <li><span class="tip-icon" style="background:#FAEEDA;color:#633806;">!</span>Instructions projet longues = répétées à chaque message</li>
+  </ul>
+</div>
+`},
+{num:4,title:"Limites hebdomadaires (depuis août 2025)",icon:"7j",color:"#D85A30",body:`
+<div class="card">
+  <div class="card-title">Nouveau système introduit le 28 août 2025</div>
+  <p>En plus de la fenêtre de 5h, Anthropic a introduit des <strong>limites hebdomadaires</strong> pour les plans Pro et Max, après que certains utilisateurs aient consommé des volumes extrêmes.</p>
+  <div class="highlight-box hl-coral">
+    <strong>Qui est touché ?</strong> Anthropic annonce que ces limites affectent moins de 5% des abonnés, correspondant aux utilisateurs très intensifs.
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Fonctionnement</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon" style="background:#FAECE7;color:#993C1D;">7</span>Un quota global hebdomadaire en plus de la fenêtre 5h</li>
+    <li><span class="tip-icon" style="background:#FAECE7;color:#993C1D;">O</span>Un quota séparé pour le modèle Opus (plus cher, plus gourmand)</li>
+    <li><span class="tip-icon" style="background:#FAECE7;color:#993C1D;">+</span>Les abonnés Max peuvent acheter du quota supplémentaire aux tarifs API standard une fois la limite atteinte</li>
+    <li><span class="tip-icon" style="background:#FAECE7;color:#993C1D;">R</span>Le quota se recharge toutes les 7 jours</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Estimation tokens / semaine (référence)</div>
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;">Sur la base de la capacité théorique 5h × plusieurs sessions/jour</p>
+  <div class="win-bar"><span class="win-label">Pro (usage normal)</span><div class="win-track"><div class="win-fill" style="width:20%;background:#534AB7;"></div></div><span style="font-size:13px;">~2–5M tokens</span></div>
+  <div class="win-bar"><span class="win-label">Max 5× (intensif)</span><div class="win-track"><div class="win-fill" style="width:55%;background:#1D9E75;"></div></div><span style="font-size:13px;">~10–25M tokens</span></div>
+  <div class="win-bar"><span class="win-label">Max 20× (très intensif)</span><div class="win-track"><div class="win-fill" style="width:90%;background:#D85A30;"></div></div><span style="font-size:13px;">~40–100M tokens</span></div>
+  <div class="highlight-box hl-amber" style="margin-top:8px;">
+    <strong>Note :</strong> Anthropic ne publie pas les chiffres exacts de ces caps hebdomadaires. Les estimations ci-dessus sont basées sur les données communautaires disponibles et peuvent varier.
+  </div>
+</div>
+`},
+{num:5,title:"Ce qui impacte la consommation",icon:"→",color:"#3B6D11",body:`
+<div class="card">
+  <div class="card-title">Les 5 grands facteurs de consommation</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon" style="background:#EAF3DE;color:#27500A;font-size:9px;">01</span><div><strong>Longueur de l'historique</strong> — Claude relit TOUT le contexte à chaque message. Une conversation de 30 messages consomme ~232 000 tokens, soit plus que la fenêtre de 200K.</div></li>
+    <li><span class="tip-icon" style="background:#EAF3DE;color:#27500A;font-size:9px;">02</span><div><strong>Fichiers uploadés</strong> — Un PDF de 50 pages peut peser 50 000–80 000 tokens à lui seul. Évitez de re-uploader le même fichier plusieurs fois.</div></li>
+    <li><span class="tip-icon" style="background:#EAF3DE;color:#27500A;font-size:9px;">03</span><div><strong>Outils et connecteurs</strong> — La recherche web, les MCP (Gmail, Drive, Notion...) injectent des définitions d'outils dans chaque message.</div></li>
+    <li><span class="tip-icon" style="background:#EAF3DE;color:#27500A;font-size:9px;">04</span><div><strong>Instructions projet</strong> — Répétées à chaque message dans le projet. 500 mots d'instructions = ~700 tokens × chaque message envoyé.</div></li>
+    <li><span class="tip-icon" style="background:#EAF3DE;color:#27500A;font-size:9px;">05</span><div><strong>Modèle choisi</strong> — Opus consomme bien plus de quota que Sonnet pour une même tâche. Haiku est le plus économique.</div></li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Coût comparatif des modèles (API)</div>
+  <div class="win-bar"><span class="win-label">Haiku 4.5</span><div class="win-track"><div class="win-fill" style="width:8%;background:#534AB7;"></div></div><span style="font-size:12px;">~$0.80/$4 / M tokens</span></div>
+  <div class="win-bar"><span class="win-label">Sonnet 4.6</span><div class="win-track"><div class="win-fill" style="width:30%;background:#1D9E75;"></div></div><span style="font-size:12px;">$3/$15 / M tokens</span></div>
+  <div class="win-bar"><span class="win-label">Opus 4.6</span><div class="win-track"><div class="win-fill" style="width:100%;background:#D85A30;"></div></div><span style="font-size:12px;">$5/$25 / M tokens</span></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">Format : input / output par million de tokens</p>
+</div>
+`},
+{num:6,title:"Comment économiser des tokens",icon:"★",color:"#185FA5",body:`
+<div class="card">
+  <div class="card-title">Stratégies de base</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">1</span><div><strong>Commencez de nouvelles conversations</strong> plutôt que de continuer une longue conversation. Une conversation de 20 messages = ~105K tokens de contexte rechargé à chaque message.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">2</span><div><strong>Regroupez vos questions</strong> en un seul message au lieu de plusieurs. 3 messages séparés = 3 rechargements du contexte complet.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">3</span><div><strong>Désactivez les outils inutiles</strong> — Coupez la recherche web et les connecteurs MCP quand vous n'en avez pas besoin. Chaque outil actif ajoute des tokens à chaque échange.</div></li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Stratégies avancées</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">4</span><div><strong>Raccourcissez les instructions projet</strong> — Gardez uniquement l'essentiel. Chaque ligne d'instruction est répétée à tous vos messages dans ce projet.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">5</span><div><strong>Ne re-uploadez pas les fichiers</strong> — Claude se souvient d'un fichier uploadé plus tôt dans la même conversation. Référencez-le par son nom au lieu de le ré-attacher.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">6</span><div><strong>Soyez spécifique dans vos corrections</strong> — "Refais seulement la section 3" plutôt que "Refais tout le rapport". Une régénération complète = tokens en double.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">7</span><div><strong>Ajoutez "Sans commentaires. Juste le résultat."</strong> — Claude est verbose par défaut. Chaque phrase de courtoisie ("Bien sûr ! Voici...") coûte des tokens d'output.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">8</span><div><strong>Désactivez "Extended Thinking"</strong> quand vous n'avez pas besoin du raisonnement approfondi. Cette fonctionnalité est extrêmement gourmande en tokens.</div></li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">9</span><div><strong>Utilisez les Projets avec RAG</strong> — Les projets chargent uniquement le contenu <em>pertinent</em> via RAG, pas tout le fichier d'un coup. Idéal pour les grandes bases de docs.</div></li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">Pour Claude Code spécifiquement</div>
+  <ul class="tip-list">
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">C</span>Utilisez <code style="font-size:12px;background:var(--color-background-secondary);padding:1px 5px;border-radius:3px;">/compact</code> pour résumer l'historique sans perdre le contexte</li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">C</span>Utilisez <code style="font-size:12px;background:var(--color-background-secondary);padding:1px 5px;border-radius:3px;">/clear</code> quand vous changez de tâche</li>
+    <li><span class="tip-icon" style="background:#E6F1FB;color:#0C447C;">C</span>Référencez les fichiers par chemin plutôt que de les coller dans le chat</li>
+  </ul>
+</div>
+`},
+{num:7,title:"Comparatif des plans — ce que vous obtenez",icon:"$",color:"#3C3489",body:`
+<div class="plan-grid">
+  <div class="plan-card"><div class="plan-name">Free</div><div class="plan-price">0 €</div><div class="plan-detail">~20–40 msg/jour<br>200K contexte<br>Pas de projets illimités<br>Accès limité à Sonnet</div></div>
+  <div class="plan-card featured"><div class="plan-badge">Populaire</div><div class="plan-name">Pro</div><div class="plan-price">20 €<span style="font-size:13px;font-weight:400;">/mois</span></div><div class="plan-detail">~45 msg / 5h<br>200K contexte<br>Projets illimités<br>Tous les modèles<br>17€/mois si annuel</div></div>
+  <div class="plan-card"><div class="plan-name">Max 5×</div><div class="plan-price">100 €<span style="font-size:13px;font-weight:400;">/mois</span></div><div class="plan-detail">5× le quota Pro<br>~225 msg / 5h<br>200K contexte<br>Usage prioritaire</div></div>
+</div>
+<div class="card" style="margin-top:4px;">
+  <div class="card-title">Max 20× — pour les utilisateurs intensifs</div>
+  <p>À <strong>200 €/mois</strong>, ce plan offre 20× le quota Pro soit ~900 messages par fenêtre de 5h. Les abonnés Max peuvent également acheter du quota supplémentaire au-delà des limites hebdomadaires aux tarifs API.</p>
+</div>
+<div class="card">
+  <div class="card-title">Calculateur tokens → mots (estimatif)</div>
+  <div class="calc-row">
+    <label style="color:var(--color-text-secondary);">Nombre de tokens :</label>
+    <input class="calc-input" type="number" id="tokIn" value="10000" min="1" oninput="calcTok()">
+    <span style="color:var(--color-text-secondary);">≈</span>
+    <span class="calc-result" id="tokOut">7 500 mots</span>
+  </div>
+  <div class="calc-row">
+    <label style="color:var(--color-text-secondary);">Nombre de mots (FR) :</label>
+    <input class="calc-input" type="number" id="wordIn" value="1000" min="1" oninput="calcWord()">
+    <span style="color:var(--color-text-secondary);">≈</span>
+    <span class="calc-result" id="wordOut">1 333 tokens</span>
+  </div>
+</div>
+<div class="highlight-box hl-purple" style="margin:8px 0 0;">
+  <strong>Récapitulatif :</strong> La fenêtre de contexte (200K tokens) définit ce que Claude voit. Les limites d'usage (5h, semaine) définissent combien vous pouvez demander. Économiser des tokens = conserver les deux.
+</div>
+`}
+];
+
+function calcTok(){const v=parseInt(document.getElementById('tokIn').value)||0;document.getElementById('tokOut').textContent=Math.round(v*0.75).toLocaleString('fr-FR')+' mots';}
+function calcWord(){const v=parseInt(document.getElementById('wordIn').value)||0;document.getElementById('wordOut').textContent=Math.round(v*1.33).toLocaleString('fr-FR')+' tokens';}
+
+const cont=document.getElementById('chapters');
+const openState={};
+chapters.forEach((ch,i)=>{
+  openState[i]=i===0;
+  const div=document.createElement('div');
+  div.className='chapter';
+  div.innerHTML=`
+    <div class="chapter-header" onclick="toggle(${i})">
+      <div class="chapter-num" style="background:${ch.color};">${ch.num}</div>
+      <div class="chapter-title">${ch.title}</div>
+      <div class="chapter-arrow ${i===0?'open':''}" id="arr${i}">▶</div>
+    </div>
+    <div class="chapter-body" id="body${i}" style="display:${i===0?'block':'none'};">${ch.body}</div>
+  `;
+  cont.appendChild(div);
+});
+function toggle(i){
+  const body=document.getElementById('body'+i);
+  const arr=document.getElementById('arr'+i);
+  openState[i]=!openState[i];
+  body.style.display=openState[i]?'block':'none';
+  arr.classList.toggle('open',openState[i]);
+}
+calcTok();calcWord();
+</script>
