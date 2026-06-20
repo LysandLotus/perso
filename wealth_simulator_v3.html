@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Builder v3 — Jay's Path to Freedom</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0a; --surface: #111; --border: #1e1e1e;
+    --accent: #c8f04a; --accent2: #4af0c8; --accent3: #f0a84a;
+    --warn: #f04a4a; --muted: #444; --text: #e8e8e8; --text2: #777;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; padding: 20px 16px 60px; max-width: 720px; margin: 0 auto; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 24px; }
+  .label { font-size: 9px; letter-spacing: 0.25em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(20px, 5vw, 32px); font-weight: 800; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 10px; color: var(--text2); margin-top: 5px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 18px; margin-bottom: 14px; }
+  .card-title { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .input-group { margin-bottom: 12px; }
+  .input-label { font-size: 10px; color: var(--text2); margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .input-label span { color: var(--accent); }
+  input[type=range] { width: 100%; appearance: none; background: var(--border); height: 2px; border-radius: 2px; outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; }
+
+  /* PHASE INDICATOR */
+  .phase-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .phase-box { border: 1px solid var(--border); border-radius: 3px; padding: 12px; }
+  .phase-box.active-phase { border-color: rgba(200,240,74,0.4); background: rgba(200,240,74,0.04); }
+  .phase-label { font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .phase-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .phase-sub { font-size: 9px; color: var(--text2); margin-top: 3px; }
+
+  /* STREAMS */
+  .streams { display: flex; flex-direction: column; gap: 10px; }
+  .stream { border: 1px solid var(--border); border-radius: 3px; padding: 12px 14px; transition: border-color 0.2s, background 0.2s; }
+  .stream.active { border-color: rgba(200,240,74,0.4); background: rgba(200,240,74,0.03); }
+  .stream-header { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .stream-toggle { width: 32px; height: 18px; background: var(--border); border-radius: 9px; position: relative; flex-shrink: 0; transition: background 0.2s; }
+  .stream-toggle.on { background: var(--accent); }
+  .stream-toggle::after { content: ''; position: absolute; width: 12px; height: 12px; background: #000; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; }
+  .stream-toggle.on::after { transform: translateX(14px); }
+  .stream-info { flex: 1; }
+  .stream-name { font-size: 11px; color: var(--text); }
+  .stream-meta { font-size: 9px; color: var(--text2); margin-top: 2px; }
+  .stream-val { font-size: 11px; color: var(--accent); font-weight: 500; }
+  .stream-detail { padding-top: 10px; border-top: 1px solid var(--border); margin-top: 10px; display: none; }
+  .stream.active .stream-detail { display: block; }
+
+  /* COMPARISON */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .compare-col { border: 1px solid var(--border); border-radius: 3px; padding: 14px; }
+  .compare-col.boosted { border-color: rgba(200,240,74,0.3); background: rgba(200,240,74,0.03); }
+  .col-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .col-label.accent { color: var(--accent); }
+  .col-years { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
+  .col-years.good { color: var(--accent); } .col-years.ok { color: var(--accent2); } .col-years.bad { color: var(--warn); }
+  .col-sub { font-size: 10px; color: var(--text2); margin-top: 4px; }
+  .delta-badge { display: inline-block; background: var(--accent); color: #000; font-size: 9px; font-weight: 700; padding: 3px 7px; border-radius: 2px; letter-spacing: 0.05em; }
+
+  /* CHART */
+  .chart-wrap { position: relative; width: 100%; height: 180px; margin: 14px 0 6px; }
+  canvas { width: 100% !important; }
+  .chart-legend { display: flex; gap: 16px; font-size: 9px; color: var(--text2); margin-bottom: 10px; flex-wrap: wrap; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+  /* TIMELINE */
+  .tl-row { display: grid; grid-template-columns: 32px 1fr 1fr 64px 64px 50px; gap: 5px; padding: 5px 6px; font-size: 9px; border-radius: 2px; align-items: center; }
+  .tl-row.head { color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 7px; margin-bottom: 3px; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .tl-row:hover { background: #161616; }
+  .tl-row.milestone { background: rgba(74,240,200,0.04); }
+  .tl-row.goal640 { background: rgba(200,240,74,0.08); border: 1px solid rgba(200,240,74,0.35); }
+  .tl-row.goal450 { background: rgba(74,240,200,0.06); border: 1px solid rgba(74,240,200,0.25); }
+  .tl-yr { color: var(--text2); }
+  .tl-base { color: var(--text2); font-variant-numeric: tabular-nums; }
+  .tl-boost { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .tag { background: var(--accent); color: #000; font-size: 7px; font-weight: 700; padding: 1px 5px; border-radius: 2px; letter-spacing: 0.08em; }
+  .tag2 { background: var(--accent2); color: #000; font-size: 7px; font-weight: 700; padding: 1px 5px; border-radius: 2px; }
+  .tag3 { background: var(--accent3); color: #000; font-size: 7px; font-weight: 700; padding: 1px 5px; border-radius: 2px; }
+
+  /* RENTE SECTION */
+  .rente-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .rente-box { border: 1px solid var(--border); border-radius: 3px; padding: 12px; }
+  .rente-box.target { border-color: rgba(200,240,74,0.4); background: rgba(200,240,74,0.04); }
+  .rente-box.beyond { border-color: rgba(240,168,74,0.3); background: rgba(240,168,74,0.03); }
+  .rb-label { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .rb-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+  .rb-sub { font-size: 9px; color: var(--text2); margin-top: 3px; }
+
+  /* INSIGHT */
+  .insight { background: rgba(200,240,74,0.04); border: 1px solid rgba(200,240,74,0.15); border-radius: 3px; padding: 14px; }
+  .insight-title { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .irow { display: flex; gap: 8px; margin-bottom: 8px; font-size: 10px; line-height: 1.5; color: var(--text2); }
+  .irow::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+  .irow strong { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Lys & Lotus — Wealth Simulator v3</div>
+  <h1>Path to <span>Financial Freedom</span></h1>
+  <div class="subtitle">Age 33 · Two-phase strategy: ACC accumulation → DIST rente · French tax 30% PFU</div>
+</header>
+
+<!-- BASE PARAMS -->
+<div class="card">
+  <div class="card-title">Base Parameters</div>
+  <div class="input-group">
+    <div class="input-label">Annual income (€) <span id="v-income">€23,000</span></div>
+    <input type="range" id="r-income" min="20000" max="80000" step="1000" value="23000" oninput="update()">
+  </div>
+  <div class="input-group">
+    <div class="input-label">Savings rate (% of all income) <span id="v-savings">25%</span></div>
+    <input type="range" id="r-savings" min="10" max="60" step="1" value="25" oninput="update()">
+  </div>
+  <div class="input-group">
+    <div class="input-label">Portfolio annual return (ACC phase) <span id="v-return">7%</span></div>
+    <input type="range" id="r-return" min="4" max="12" step="0.5" value="7" oninput="update()">
+  </div>
+  <div class="input-group">
+    <div class="input-label">Base income growth/yr <span id="v-growth">5%</span></div>
+    <input type="range" id="r-growth" min="0" max="15" step="0.5" value="5" oninput="update()">
+  </div>
+  <div class="input-group">
+    <div class="input-label">Dividend yield (DIST phase) <span id="v-divyield">4%</span></div>
+    <input type="range" id="r-divyield" min="2" max="8" step="0.5" value="4" oninput="update()">
+  </div>
+  <div class="input-group">
+    <div class="input-label">Tax on dividends (PFU FR = 30%) <span id="v-tax">30%</span></div>
+    <input type="range" id="r-tax" min="0" max="40" step="5" value="30" oninput="update()">
+  </div>
+</div>
+
+<!-- SIDE STREAMS -->
+<div class="card">
+  <div class="card-title">Side Income Streams — Toggle to Activate</div>
+  <div class="streams">
+    <div class="stream" id="s-packages">
+      <div class="stream-header" onclick="toggleStream('packages')">
+        <div class="stream-toggle" id="t-packages"></div>
+        <div class="stream-info"><div class="stream-name">GTM Container Packages</div><div class="stream-meta">Gumroad · Shopify/WooCommerce/Prestashop</div></div>
+        <div class="stream-val" id="sv-packages">+€0/yr</div>
+      </div>
+      <div class="stream-detail">
+        <div class="input-group" style="margin-bottom:8px"><div class="input-label">Monthly revenue <span id="vp-packages">€500/mo</span></div><input type="range" id="rp-packages" min="0" max="3000" step="100" value="500" oninput="update()"></div>
+        <div class="input-group" style="margin-bottom:0"><div class="input-label">Starts from month <span id="vm-packages">12</span></div><input type="range" id="rm-packages" min="3" max="24" step="1" value="12" oninput="update()"></div>
+      </div>
+    </div>
+    <div class="stream" id="s-course">
+      <div class="stream-header" onclick="toggleStream('course')">
+        <div class="stream-toggle" id="t-course"></div>
+        <div class="stream-info"><div class="stream-name">Online Course</div><div class="stream-meta">GTM for freelancers/agencies · €149-299</div></div>
+        <div class="stream-val" id="sv-course">+€0/yr</div>
+      </div>
+      <div class="stream-detail">
+        <div class="input-group" style="margin-bottom:8px"><div class="input-label">Monthly revenue <span id="vp-course">€800/mo</span></div><input type="range" id="rp-course" min="0" max="5000" step="100" value="800" oninput="update()"></div>
+        <div class="input-group" style="margin-bottom:0"><div class="input-label">Starts from month <span id="vm-course">18</span></div><input type="range" id="rm-course" min="6" max="36" step="1" value="18" oninput="update()"></div>
+      </div>
+    </div>
+    <div class="stream" id="s-async">
+      <div class="stream-header" onclick="toggleStream('async')">
+        <div class="stream-toggle" id="t-async"></div>
+        <div class="stream-info"><div class="stream-name">Async GTM Audits</div><div class="stream-meta">€99-149/audit · no calls · 4-6/week capacity</div></div>
+        <div class="stream-val" id="sv-async">+€0/yr</div>
+      </div>
+      <div class="stream-detail">
+        <div class="input-group" style="margin-bottom:8px"><div class="input-label">Monthly revenue <span id="vp-async">€600/mo</span></div><input type="range" id="rp-async" min="0" max="4000" step="100" value="600" oninput="update()"></div>
+        <div class="input-group" style="margin-bottom:0"><div class="input-label">Starts from month <span id="vm-async">3</span></div><input type="range" id="rm-async" min="1" max="12" step="1" value="3" oninput="update()"></div>
+      </div>
+    </div>
+    <div class="stream" id="s-affiliate">
+      <div class="stream-header" onclick="toggleStream('affiliate')">
+        <div class="stream-toggle" id="t-affiliate"></div>
+        <div class="stream-info"><div class="stream-name">Affiliate (Stape + CMP tools)</div><div class="stream-meta">Recurring commissions · near-zero effort</div></div>
+        <div class="stream-val" id="sv-affiliate">+€0/yr</div>
+      </div>
+      <div class="stream-detail">
+        <div class="input-group" style="margin-bottom:8px"><div class="input-label">Monthly revenue <span id="vp-affiliate">€150/mo</span></div><input type="range" id="rp-affiliate" min="0" max="1000" step="50" value="150" oninput="update()"></div>
+        <div class="input-group" style="margin-bottom:0"><div class="input-label">Starts from month <span id="vm-affiliate">2</span></div><input type="range" id="rm-affiliate" min="1" max="6" step="1" value="2" oninput="update()"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE TARGETS -->
+<div class="card">
+  <div class="card-title">Two-Phase Targets</div>
+  <div class="phase-strip">
+    <div class="phase-box" id="ph1">
+      <div class="phase-label">Phase 1 — Semi-liberté</div>
+      <div class="phase-val" id="ph1-val">—</div>
+      <div class="phase-sub" id="ph1-sub">—</div>
+    </div>
+    <div class="phase-box active-phase" id="ph2">
+      <div class="phase-label">Phase 2 — Liberté totale ★</div>
+      <div class="phase-val" id="ph2-val">—</div>
+      <div class="phase-sub" id="ph2-sub">—</div>
+    </div>
+  </div>
+  <div style="font-size:9px; color:var(--text2); line-height:1.6; padding: 8px; background:#0d0d0d; border-radius:3px; border:1px solid var(--border)">
+    Phase 1 = <strong style="color:var(--accent2)">€450k</strong> → ~<span id="ph1-net">—</span> net/mo after <span id="ph1-taxlabel">30%</span> PFU · 
+    Phase 2 = <strong style="color:var(--accent)">€640k</strong> → ~<span id="ph2-net">—</span> net/mo · 
+    Beyond = simulation continues past goal
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div class="card">
+  <div class="card-title">Timeline Comparison</div>
+  <div class="compare-grid">
+    <div class="compare-col">
+      <div class="col-label">Without side income</div>
+      <div class="col-years bad" id="c-base-yrs">—</div>
+      <div class="col-sub" id="c-base-age">age —</div>
+    </div>
+    <div class="compare-col boosted">
+      <div class="col-label accent">With active streams</div>
+      <div class="col-years good" id="c-boost-yrs">—</div>
+      <div class="col-sub" id="c-boost-age">age —</div>
+      <div class="col-sub" style="margin-top:6px"><span class="delta-badge" id="c-delta">—</span></div>
+    </div>
+  </div>
+
+  <div class="chart-legend">
+    <div><span class="legend-dot" style="background:#555"></span>Base only</div>
+    <div><span class="legend-dot" style="background:#c8f04a"></span>With streams</div>
+    <div><span class="legend-dot" style="background:rgba(74,240,200,0.5)"></span>€450k (Phase 1)</div>
+    <div><span class="legend-dot" style="background:rgba(200,240,74,0.5)"></span>€640k (Phase 2)</div>
+  </div>
+  <div class="chart-wrap"><canvas id="chart" height="180"></canvas></div>
+
+  <hr>
+  <div id="timeline">
+    <div class="tl-row head">
+      <span>YR</span><span>BASE</span><span>+STREAMS</span><span>DIV BRUT</span><span>DIV NET</span><span></span>
+    </div>
+  </div>
+</div>
+
+<!-- RENTE PROJECTIONS -->
+<div class="card">
+  <div class="card-title">Monthly Rente — Net After Tax</div>
+  <div style="font-size:9px; color:var(--text2); margin-bottom:12px">What you actually receive monthly in DIST phase · after <span id="tax-label-card">30%</span> PFU</div>
+
+  <div class="rente-grid">
+    <div class="rente-box">
+      <div class="rb-label">Year 5</div>
+      <div class="rb-val" style="color:var(--accent2)" id="div-yr5">—</div>
+      <div class="rb-sub">net/month</div>
+    </div>
+    <div class="rente-box">
+      <div class="rb-label">Year 10</div>
+      <div class="rb-val" style="color:var(--accent2)" id="div-yr10">—</div>
+      <div class="rb-sub">net/month</div>
+    </div>
+    <div class="rente-box target">
+      <div class="rb-label">At €640k ★</div>
+      <div class="rb-val" style="color:var(--accent)" id="div-goal640">—</div>
+      <div class="rb-sub">net/month</div>
+    </div>
+    <div class="rente-box">
+      <div class="rb-label">At €450k</div>
+      <div class="rb-val" style="color:var(--accent2)" id="div-goal450">—</div>
+      <div class="rb-sub">net/month</div>
+    </div>
+    <div class="rente-box beyond">
+      <div class="rb-label">At €900k</div>
+      <div class="rb-val" style="color:var(--accent3)" id="div-900k">—</div>
+      <div class="rb-sub">net/month</div>
+    </div>
+    <div class="rente-box beyond">
+      <div class="rb-label">At €1.2M</div>
+      <div class="rb-val" style="color:var(--accent3)" id="div-12m">—</div>
+      <div class="rb-sub">net/month</div>
+    </div>
+  </div>
+
+  <div class="chart-legend">
+    <div><span class="legend-dot" style="background:#4af0c8"></span>Net div/mo (streams on)</div>
+    <div><span class="legend-dot" style="background:#555"></span>Base only</div>
+  </div>
+  <div class="chart-wrap" style="height:150px"><canvas id="div-chart" height="150"></canvas></div>
+
+  <div style="margin-top:12px; background:rgba(74,240,200,0.04); border:1px solid rgba(74,240,200,0.15); border-radius:3px; padding:12px">
+    <div style="font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent2); margin-bottom:8px">HCMC Cost of Living Reference</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:9px; color:var(--text2)">
+      <div>🏠 Rent (1br central) <strong style="color:var(--text)">~€500/mo</strong></div>
+      <div>🍜 Food + eating out <strong style="color:var(--text)">~€200/mo</strong></div>
+      <div>🛵 Transport <strong style="color:var(--text)">~€80/mo</strong></div>
+      <div>⚕️ Health insurance <strong style="color:var(--text)">~€100/mo</strong></div>
+      <div>🎮 Leisure + misc <strong style="color:var(--text)">~€200/mo</strong></div>
+      <div>✈️ Travel buffer <strong style="color:var(--text)">~€150/mo</strong></div>
+    </div>
+    <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(74,240,200,0.15); font-size:10px">
+      Comfortable: <strong style="color:var(--accent2)">~€1,230/mo net</strong> · Full freedom: <strong style="color:var(--accent)">~€1,500/mo net</strong>
+    </div>
+  </div>
+</div>
+
+<!-- INSIGHTS -->
+<div class="card">
+  <div class="card-title">What the Numbers Say</div>
+  <div id="insight-body"></div>
+</div>
+
+<script>
+const CURRENT_AGE = 33;
+const TARGET1 = 450000;  // Phase 1 — semi-liberté
+const TARGET2 = 640000;  // Phase 2 — liberté totale (real target after 30% tax)
+
+const streams = { packages: false, course: false, async: false, affiliate: false };
+
+function toggleStream(id) {
+  streams[id] = !streams[id];
+  document.getElementById('t-' + id).classList.toggle('on', streams[id]);
+  document.getElementById('s-' + id).classList.toggle('active', streams[id]);
+  update();
+}
+
+function fmt(n) { return '€' + Math.round(n).toLocaleString('fr-FR'); }
+function fmtK(n) { return n >= 1000 ? '€' + (n/1000).toFixed(0) + 'k' : fmt(n); }
+
+function getSideIncome(yr, mo_start, mo_monthly) {
+  const startYear = Math.ceil(mo_start / 12);
+  const startMonthInYear = mo_start - (startYear - 1) * 12;
+  if (yr < startYear) return 0;
+  if (yr === startYear) return mo_monthly * (12 - startMonthInYear + 1);
+  return mo_monthly * 12;
+}
+
+function simulate(withStreams) {
+  const income  = +document.getElementById('r-income').value;
+  const savings = +document.getElementById('r-savings').value / 100;
+  const ret     = +document.getElementById('r-return').value / 100;
+  const growth  = +document.getElementById('r-growth').value / 100;
+  const streamDefs = {
+    packages:  { mo: +document.getElementById('rp-packages').value, start: +document.getElementById('rm-packages').value },
+    course:    { mo: +document.getElementById('rp-course').value,   start: +document.getElementById('rm-course').value },
+    async:     { mo: +document.getElementById('rp-async').value,    start: +document.getElementById('rm-async').value },
+    affiliate: { mo: +document.getElementById('rp-affiliate').value,start: +document.getElementById('rm-affiliate').value },
+  };
+  let capital = 0, currentIncome = income;
+  const rows = [];
+  let goal1Year = null, goal2Year = null;
+  for (let yr = 1; yr <= 40; yr++) {
+    let sideAnnual = 0;
+    if (withStreams) {
+      for (const [id, def] of Object.entries(streamDefs)) {
+        if (streams[id]) sideAnnual += getSideIncome(yr, def.start, def.mo);
+      }
+    }
+    const annualSaved = (currentIncome + sideAnnual) * savings;
+    capital = capital * (1 + ret) + annualSaved;
+    rows.push({ yr, capital, income: currentIncome, sideAnnual, saved: annualSaved, age: CURRENT_AGE + yr });
+    if (!goal1Year && capital >= TARGET1) goal1Year = yr;
+    if (!goal2Year && capital >= TARGET2) goal2Year = yr;
+    currentIncome *= (1 + growth);
+  }
+  return { rows, goal1Year, goal2Year };
+}
+
+function update() {
+  const savings  = +document.getElementById('r-savings').value / 100;
+  const divYield = +document.getElementById('r-divyield').value / 100;
+  const tax      = +document.getElementById('r-tax').value / 100;
+  const netFactor = 1 - tax;
+
+  document.getElementById('v-income').textContent   = fmt(+document.getElementById('r-income').value);
+  document.getElementById('v-savings').textContent  = Math.round(savings * 100) + '%';
+  document.getElementById('v-return').textContent   = (+document.getElementById('r-return').value).toFixed(1) + '%';
+  document.getElementById('v-growth').textContent   = (+document.getElementById('r-growth').value).toFixed(1) + '%';
+  document.getElementById('v-divyield').textContent = (divYield * 100).toFixed(1) + '%';
+  document.getElementById('v-tax').textContent      = Math.round(tax * 100) + '%';
+  document.getElementById('tax-label-card').textContent = Math.round(tax * 100) + '%';
+
+  // Stream labels
+  ['packages','course','async','affiliate'].forEach(id => {
+    const mo = +document.getElementById('rp-' + id).value;
+    const start = +document.getElementById('rm-' + id).value;
+    document.getElementById('vp-' + id).textContent = fmt(mo) + '/mo';
+    document.getElementById('vm-' + id).textContent = 'mo ' + start;
+    document.getElementById('sv-' + id).textContent = streams[id] ? '+' + fmtK(mo * 12) + '/yr' : '+€0/yr';
+  });
+
+  const base  = simulate(false);
+  const boost = simulate(true);
+
+  // Phase targets display
+  const ph1Net = Math.round(TARGET1 * divYield * netFactor / 12);
+  const ph2Net = Math.round(TARGET2 * divYield * netFactor / 12);
+  document.getElementById('ph1-net').textContent = fmt(ph1Net);
+  document.getElementById('ph2-net').textContent = fmt(ph2Net);
+  document.getElementById('ph1-taxlabel').textContent = Math.round(tax * 100) + '%';
+
+  const b1 = boost.goal1Year, b2 = boost.goal2Year;
+  document.getElementById('ph1-val').textContent = b1 ? b1 + ' yrs' : '>40yr';
+  document.getElementById('ph1-sub').textContent = b1 ? 'age ' + (CURRENT_AGE + b1) : '—';
+  document.getElementById('ph2-val').textContent = b2 ? b2 + ' yrs' : '>40yr';
+  document.getElementById('ph2-sub').textContent = b2 ? 'age ' + (CURRENT_AGE + b2) : '—';
+
+  // Comparison (vs TARGET2)
+  const base2 = base.goal2Year, boost2 = boost.goal2Year;
+  const delta = (base2 && boost2) ? base2 - boost2 : null;
+  document.getElementById('c-base-yrs').textContent = base2 ? base2 + ' yrs' : '>40yr';
+  document.getElementById('c-base-age').textContent = base2 ? 'age ' + (CURRENT_AGE + base2) : 'beyond horizon';
+  document.getElementById('c-boost-yrs').textContent = boost2 ? boost2 + ' yrs' : '>40yr';
+  document.getElementById('c-boost-age').textContent = boost2 ? 'age ' + (CURRENT_AGE + boost2) : 'beyond horizon';
+  const byEl2 = document.getElementById('c-boost-yrs');
+  byEl2.className = 'col-years ' + (boost2 && boost2 <= 15 ? 'good' : boost2 && boost2 <= 22 ? 'ok' : 'bad');
+  const deltaEl = document.getElementById('c-delta');
+  if (delta && delta > 0) { deltaEl.textContent = '−' + delta + ' years faster'; deltaEl.style.background = 'var(--accent)'; }
+  else if (delta === 0) { deltaEl.textContent = 'same timeline'; deltaEl.style.background = 'var(--muted)'; }
+  else { deltaEl.textContent = 'activate streams above'; deltaEl.style.background = 'var(--muted)'; }
+
+  drawChart(base.rows, boost.rows);
+
+  // Timeline — continue 5 years past goal2 or 35yr min
+  const showUntil = Math.min(Math.max((boost.goal2Year || 35) + 5, 25), 40);
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = `<div class="tl-row head"><span>YR</span><span>BASE</span><span>+STREAMS</span><span>DIV BRUT</span><span>DIV NET</span><span></span></div>`;
+  for (let i = 0; i < Math.min(showUntil, boost.rows.length); i++) {
+    const br = base.rows[i];
+    const sr = boost.rows[i];
+    const isGoal2 = sr.capital >= TARGET2 && (i === 0 || boost.rows[i-1].capital < TARGET2);
+    const isGoal1 = sr.capital >= TARGET1 && (i === 0 || boost.rows[i-1].capital < TARGET1);
+    const isMile  = [100000,200000,300000,500000,800000,1000000].some(m => sr.capital >= m && (i === 0 || boost.rows[i-1].capital < m));
+    const cls = isGoal2 ? 'goal640' : isGoal1 ? 'goal450' : isMile ? 'milestone' : '';
+    const divBrut = Math.round(sr.capital * divYield / 12);
+    const divNet  = Math.round(divBrut * netFactor);
+    const tagHtml = isGoal2 ? '<span class="tag">€640k ★</span>' : isGoal1 ? '<span class="tag2">€450k</span>' : isMile ? '<span class="tag3">' + fmtK(sr.capital) + '</span>' : '';
+    tl.innerHTML += `<div class="tl-row ${cls}">
+      <span class="tl-yr">${sr.yr}</span>
+      <span class="tl-base">${fmtK(br.capital)}</span>
+      <span class="tl-boost">${fmtK(sr.capital)}</span>
+      <span style="color:var(--accent2);font-variant-numeric:tabular-nums">${fmt(divBrut)}</span>
+      <span style="color:var(--accent);font-variant-numeric:tabular-nums">${fmt(divNet)}</span>
+      <span>${tagHtml}</span>
+    </div>`;
+  }
+
+  // Rente snapshots — NET
+  const netDiv = (capital) => Math.round(capital * divYield * netFactor / 12);
+  document.getElementById('div-yr5').textContent    = fmt(netDiv(boost.rows[4]?.capital || 0));
+  document.getElementById('div-yr10').textContent   = fmt(netDiv(boost.rows[9]?.capital || 0));
+  document.getElementById('div-goal450').textContent= fmt(netDiv(TARGET1));
+  document.getElementById('div-goal640').textContent= fmt(netDiv(TARGET2));
+  document.getElementById('div-900k').textContent   = fmt(netDiv(900000));
+  document.getElementById('div-12m').textContent    = fmt(netDiv(1200000));
+
+  drawDivChart(base.rows, boost.rows, divYield, netFactor);
+
+  // Insights
+  const totalSideMonthly = ['packages','course','async','affiliate'].reduce((acc, id) => acc + (streams[id] ? +document.getElementById('rp-' + id).value : 0), 0);
+  let insightHTML = '<div class="insight"><div class="insight-title">Analysis</div>';
+  insightHTML += `<div class="irow">Real target is <strong>€640k</strong> — not €450k. At 4% yield after ${Math.round(tax*100)}% PFU, €450k gives you only <strong>${fmt(ph1Net)}/mo net</strong>. Not enough for HCMC comfort. €640k gives <strong>${fmt(ph2Net)}/mo net</strong>.</div>`;
+  if (tax === 0.30) {
+    insightHTML += `<div class="irow">If you change fiscal residency to Vietnam (5% tax on dividends), your real target drops back to <strong>~€470k</strong> for €1,500/mo net. Worth tracking as an option.</div>`;
+  }
+  if (totalSideMonthly > 0 && delta && delta > 0) {
+    insightHTML += `<div class="irow">Side streams shave <strong>${delta} years</strong> off the timeline to €640k. Every €100/mo extra invested adds ~€30k at year 20.</div>`;
+  }
+  insightHTML += `<div class="irow">ACC now, DIST later. During accumulation phase, <strong>VWCE ACC only</strong> — zero tax drag. Switch to DIST ETFs only when you're ready to live off the income.</div>`;
+  insightHTML += `<div class="irow">The table continues past €640k so you can see what higher capital would generate — €900k = ${fmt(netDiv(900000))}/mo · €1.2M = ${fmt(netDiv(1200000))}/mo.</div>`;
+  insightHTML += '</div>';
+  document.getElementById('insight-body').innerHTML = insightHTML;
+}
+
+function drawChart(baseRows, boostRows) {
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  const h = 180;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const showUntil = Math.min(Math.max((boostRows.findIndex(r => r.capital >= TARGET2) || 30) + 5, 25), 40);
+  const displayRows = Math.min(showUntil, boostRows.length);
+  const maxCap = Math.max(...boostRows.slice(0, displayRows).map(r => r.capital), TARGET2 * 1.1);
+  const pad = { top: 12, right: 14, bottom: 28, left: 8 };
+  const cw = w - pad.left - pad.right, ch = h - pad.top - pad.bottom;
+  const xPos = yr => pad.left + ((yr - 1) / (displayRows - 1)) * cw;
+  const yPos = cap => pad.top + ch - (cap / maxCap) * ch;
+
+  // Target lines
+  [[TARGET1, 'rgba(74,240,200,0.25)', '€450k'], [TARGET2, 'rgba(200,240,74,0.3)', '€640k★']].forEach(([t, col, lbl]) => {
+    const ty = yPos(t);
+    ctx.beginPath(); ctx.setLineDash([4,4]); ctx.strokeStyle = col; ctx.lineWidth = 1;
+    ctx.moveTo(pad.left, ty); ctx.lineTo(w - pad.right, ty); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = col; ctx.font = '8px DM Mono, monospace';
+    ctx.textAlign = 'right'; ctx.fillText(lbl, w - pad.right - 2, ty - 3);
+  });
+
+  // Fill boost
+  ctx.beginPath(); ctx.moveTo(xPos(1), yPos(0));
+  for (let i = 0; i < displayRows; i++) ctx.lineTo(xPos(i+1), yPos(boostRows[i].capital));
+  ctx.lineTo(xPos(displayRows), yPos(0)); ctx.closePath();
+  ctx.fillStyle = 'rgba(200,240,74,0.05)'; ctx.fill();
+
+  // Base line
+  ctx.beginPath(); ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+  for (let i = 0; i < displayRows; i++) {
+    i === 0 ? ctx.moveTo(xPos(i+1), yPos(baseRows[i].capital)) : ctx.lineTo(xPos(i+1), yPos(baseRows[i].capital));
+  }
+  ctx.stroke();
+
+  // Boost line
+  ctx.beginPath(); ctx.strokeStyle = '#c8f04a'; ctx.lineWidth = 2;
+  for (let i = 0; i < displayRows; i++) {
+    i === 0 ? ctx.moveTo(xPos(i+1), yPos(boostRows[i].capital)) : ctx.lineTo(xPos(i+1), yPos(boostRows[i].capital));
+  }
+  ctx.stroke();
+
+  ctx.fillStyle = '#444'; ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'center';
+  for (let yr = 1; yr <= displayRows; yr += Math.ceil(displayRows / 7)) {
+    ctx.fillText('yr' + yr, xPos(yr), h - pad.bottom + 12);
+  }
+}
+
+function drawDivChart(baseRows, boostRows, divYield, netFactor) {
+  const canvas = document.getElementById('div-chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth;
+  const h = 150;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h);
+
+  const showUntil = Math.min(Math.max((boostRows.findIndex(r => r.capital >= TARGET2) || 30) + 5, 25), 40);
+  const displayRows = Math.min(showUntil, boostRows.length);
+  const baseDivs  = baseRows.slice(0, displayRows).map(r => r.capital * divYield * netFactor / 12);
+  const boostDivs = boostRows.slice(0, displayRows).map(r => r.capital * divYield * netFactor / 12);
+  const maxDiv = Math.max(...boostDivs, TARGET2 * divYield * netFactor / 12 * 1.1);
+
+  const pad = { top: 12, right: 48, bottom: 28, left: 8 };
+  const cw = w - pad.left - pad.right, ch = h - pad.top - pad.bottom;
+  const xPos = i => pad.left + (i / (displayRows - 1)) * cw;
+  const yPos = v => pad.top + ch - (v / maxDiv) * ch;
+
+  // Reference lines
+  [[1230,'~€1,230','rgba(74,240,200,0.3)'],[1500,'~€1,500','rgba(200,240,74,0.4)']].forEach(([val, lbl, col]) => {
+    if (val <= maxDiv) {
+      const ly = yPos(val);
+      ctx.beginPath(); ctx.setLineDash([3,4]); ctx.strokeStyle = col; ctx.lineWidth = 1;
+      ctx.moveTo(pad.left, ly); ctx.lineTo(w - pad.right, ly); ctx.stroke();
+      ctx.setLineDash([]); ctx.fillStyle = col; ctx.font = '8px DM Mono, monospace';
+      ctx.textAlign = 'left'; ctx.fillText(lbl, w - pad.right + 2, ly + 3);
+    }
+  });
+
+  ctx.beginPath(); ctx.moveTo(xPos(0), yPos(0));
+  boostDivs.forEach((v, i) => ctx.lineTo(xPos(i), yPos(v)));
+  ctx.lineTo(xPos(displayRows-1), yPos(0)); ctx.closePath();
+  ctx.fillStyle = 'rgba(74,240,200,0.07)'; ctx.fill();
+
+  ctx.beginPath(); ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+  baseDivs.forEach((v, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(v)) : ctx.lineTo(xPos(i), yPos(v)));
+  ctx.stroke();
+
+  ctx.beginPath(); ctx.strokeStyle = '#4af0c8'; ctx.lineWidth = 2;
+  boostDivs.forEach((v, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(v)) : ctx.lineTo(xPos(i), yPos(v)));
+  ctx.stroke();
+
+  ctx.fillStyle = '#444'; ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'center';
+  for (let i = 0; i < displayRows; i += Math.ceil(displayRows / 7)) {
+    ctx.fillText('yr' + (i+1), xPos(i), h - pad.bottom + 12);
+  }
+}
+
+update();
+</script>
+</body>
+</html>
