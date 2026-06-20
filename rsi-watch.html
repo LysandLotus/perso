@@ -239,6 +239,42 @@
     padding-top:16px;
   }
 
+  .alert-log{
+    background:var(--surface);
+    border:1px solid var(--neutral);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:18px;
+  }
+  .alert-log-title{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--neutral);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-bottom:8px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .alert-log-clear{
+    color:var(--text-dim);
+    cursor:pointer;
+    text-transform:none;
+    letter-spacing:0;
+  }
+  .alert-log-clear:hover{color:var(--text);}
+  .alert-entry{
+    font-family:var(--mono);
+    font-size:12px;
+    padding:6px 0;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .alert-entry:last-child{border-bottom:none;}
+  .alert-entry .t{color:var(--text-dim); font-size:11px; white-space:nowrap;}
+
   .add-row{
     display:flex;
     gap:8px;
@@ -280,7 +316,13 @@
     </select>
     <button class="primary" id="addBtn">+ Ajouter</button>
     <button id="notifBtn">🔔 Activer notifications</button>
+    <button id="testBtn">🔧 Tester l'alerte</button>
     <button id="refreshBtn">↻ Rafraîchir</button>
+  </div>
+
+  <div id="alertLog" class="alert-log" style="display:none;">
+    <div class="alert-log-title">Journal d'alertes <span id="alertLogClear" class="alert-log-clear">vider</span></div>
+    <div id="alertLogList"></div>
   </div>
 
   <div class="grid" id="grid">
@@ -388,11 +430,29 @@ function playBeep(){
   }catch(e){}
 }
 
+let alertHistory = [];
+
+function logAlert(title, body){
+  alertHistory.unshift({title, body, time: new Date().toLocaleTimeString('fr-FR')});
+  alertHistory = alertHistory.slice(0, 30);
+  const logEl = document.getElementById('alertLog');
+  const listEl = document.getElementById('alertLogList');
+  logEl.style.display = 'block';
+  listEl.innerHTML = alertHistory.map(a=>
+    `<div class="alert-entry"><span>${a.title} — ${a.body}</span><span class="t">${a.time}</span></div>`
+  ).join('');
+}
+
 function notify(title, body){
-  if(Notification.permission === 'granted'){
-    new Notification(title, {body});
-  }
+  // Always log visibly in-page — this works regardless of browser/iframe restrictions
+  logAlert(title, body);
   playBeep();
+  // Best-effort native notification — may silently fail in sandboxed contexts
+  try{
+    if('Notification' in window && Notification.permission === 'granted'){
+      new Notification(title, {body});
+    }
+  }catch(e){ /* native notifications unavailable in this context, in-page log above still works */ }
 }
 
 async function refreshOne(item){
@@ -524,11 +584,28 @@ document.getElementById('refreshBtn').addEventListener('click', refreshAll);
 
 document.getElementById('notifBtn').addEventListener('click', async ()=>{
   if(!('Notification' in window)){
-    alert('Les notifications ne sont pas supportées sur ce navigateur.');
+    logAlert('Info', 'Les notifications natives ne sont pas supportées ici — le journal d\'alertes ci-dessus prend le relais.');
     return;
   }
-  const perm = await Notification.requestPermission();
-  document.getElementById('notifBtn').textContent = perm === 'granted' ? '🔔 Notifications actives' : '🔕 Notifications refusées';
+  try{
+    const perm = await Notification.requestPermission();
+    document.getElementById('notifBtn').textContent = perm === 'granted' ? '🔔 Notifications actives' : '🔕 Notifications refusées';
+    if(perm !== 'granted'){
+      logAlert('Info', 'Notifications natives indisponibles — le journal d\'alertes ci-dessus continuera de fonctionner.');
+    }
+  }catch(e){
+    logAlert('Info', 'Notifications natives bloquées dans cet environnement — le journal d\'alertes reste actif.');
+  }
+});
+
+document.getElementById('testBtn').addEventListener('click', ()=>{
+  notify('Test', 'Si tu vois cette ligne dans le journal et entends un bip, le système fonctionne.');
+});
+
+document.getElementById('alertLogClear').addEventListener('click', ()=>{
+  alertHistory = [];
+  document.getElementById('alertLogList').innerHTML = '';
+  document.getElementById('alertLog').style.display = 'none';
 });
 
 loadWatchlist();
