@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kadlore — Steam Library Analysis</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c26;
+    --surface2: #1e2332;
+    --border: #2a2f42;
+    --border2: #353b52;
+    --text: #e2e6f0;
+    --text2: #8892a4;
+    --text3: #555f74;
+    --accent: #5b8def;
+    --power: #8b7fd4;
+    --good: #3db87a;
+    --try: #e0953a;
+    --missed: #e05050;
+    --na: #555f74;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-title h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .header-title p {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-left: auto;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* CONTROLS */
+  .controls {
+    padding: 1rem 2rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 77px;
+    z-index: 99;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    width: 14px;
+    height: 14px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 7px 10px 7px 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--text3); }
+
+  .filter-group {
+    display: flex;
+    gap: 4px;
+  }
+
+  .filter-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text); }
+  .filter-btn.active { color: #fff; border-color: transparent; }
+  .filter-btn[data-f="all"].active { background: var(--accent); }
+  .filter-btn[data-f="missed"].active { background: var(--missed); }
+  .filter-btn[data-f="try"].active { background: var(--try); }
+  .filter-btn[data-f="good"].active { background: var(--good); }
+  .filter-btn[data-f="power"].active { background: var(--power); }
+
+  .count-badge {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    padding: 0 2rem 3rem;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+
+  thead th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  thead th:hover { color: var(--text2); }
+  thead th.sorted { color: var(--accent); }
+
+  thead th .sort-arrow { margin-left: 4px; opacity: 0.5; font-size: 10px; }
+  thead th.sorted .sort-arrow { opacity: 1; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: var(--surface); }
+
+  td {
+    padding: 9px 12px;
+    vertical-align: middle;
+  }
+
+  .td-name {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  .td-type {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .td-hours {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .td-comm {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .depth-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .depth-pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    min-width: 45px;
+    text-align: right;
+  }
+
+  .bar-track {
+    width: 80px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .bar-fill {
+    height: 4px;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .td-rating {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .verdict-badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .v-power { background: rgba(139,127,212,0.15); color: var(--power); border: 1px solid rgba(139,127,212,0.3); }
+  .v-good  { background: rgba(61,184,122,0.12); color: var(--good);  border: 1px solid rgba(61,184,122,0.25); }
+  .v-try   { background: rgba(224,149,58,0.12); color: var(--try);   border: 1px solid rgba(224,149,58,0.25); }
+  .v-missed{ background: rgba(224,80,80,0.12);  color: var(--missed); border: 1px solid rgba(224,80,80,0.25); }
+  .v-na    { background: transparent; color: var(--text3); border: 1px solid var(--border); }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem 2rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    header { padding: 1rem; flex-wrap: wrap; }
+    .header-stats { margin-left: 0; }
+    .controls { padding: 0.75rem 1rem; top: auto; position: relative; }
+    .table-wrap { padding: 0 1rem 2rem; }
+  }
+
+  .td-paid { font-family: var(--mono); color: var(--text); white-space: nowrap; }
+  .td-eph { font-family: var(--mono); white-space: nowrap; }
+  .tag-free { color: var(--good); font-size: 11px; }
+  .tag-na { color: var(--text3); }
+  .mtx-tag { color: var(--power); font-size: 9px; margin-left: 3px; vertical-align: super; }
+  .eph-great { color: var(--good); font-weight: 500; }
+  .eph-ok { color: var(--try); }
+  .eph-bad { color: var(--missed); }
+  .method-note { padding: 0.5rem 2rem 0; font-size: 11px; color: var(--text3); font-family: var(--mono); line-height: 1.6; }
+  .method-note b { color: var(--text2); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>kadlore — Steam Library</h1>
+    <p>steamdb.info/calculator/76561198105549027 · 268 games · 7,725h recorded · updated Jul 2026</p>
+  </div>
+  <div class="header-stats">
+    <div class="stat">
+      <div class="stat-value" id="s-eph">–</div>
+      <div class="stat-label">real €/hour played</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="s-spent">–</div>
+      <div class="stat-label">total actually paid</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="s-hours">–</div>
+      <div class="stat-label">hours on priced games</div>
+    </div>
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--power)"></div>⭐ Power user — played far beyond community avg</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--good)"></div>✅ Well explored — near or above community avg</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--try)"></div>🟡 Give more time — partially played, worth returning</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--missed)"></div>🔴 Barely touched — under 25% of community avg</div>
+</div>
+
+<div class="method-note">
+  <b>Prices</b> = what you actually paid (after discounts), from your purchase history. ฿ converted at ~38฿/€, A$ at ~0.62€ — approximate era rates.
+  Multi-game carts <b>split evenly</b>; same-game DLC folded in. <b>◆</b> = in-game/MTX spend (Path of Exile point packs; base game is free).
+  <b>Free</b> = free-to-play. <b>—</b> = not in your history (gift / family share). <b>€/hour = paid ÷ your hours</b>, lower is better. Hours from the Jul 2026 SteamDB snapshot.
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search games..." oninput="doSearch(this.value)">
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-f="all" onclick="setFilter('all')">All</button>
+    <button class="filter-btn" data-f="missed" onclick="setFilter('missed')">🔴 Barely touched</button>
+    <button class="filter-btn" data-f="try" onclick="setFilter('try')">🟡 Give more time</button>
+    <button class="filter-btn" data-f="good" onclick="setFilter('good')">✅ Well explored</button>
+    <button class="filter-btn" data-f="power" onclick="setFilter('power')">⭐ Power user</button>
+  </div>
+  <span class="count-badge" id="counter"></span>
+</div>
+
+<div class="table-wrap">
+  <table id="gameTable">
+    <thead>
+      <tr>
+        <th onclick="sortBy('name')">Game <span class="sort-arrow" id="h-name"></span></th>
+        <th onclick="sortBy('type')">Type <span class="sort-arrow" id="h-type"></span></th>
+        <th onclick="sortBy('mine')">My hours <span class="sort-arrow" id="h-mine"></span></th>
+        <th onclick="sortBy('paid')">Paid <span class="sort-arrow" id="h-paid"></span></th>
+        <th onclick="sortBy('eph')">€/hour <span class="sort-arrow" id="h-eph"></span></th>
+        <th onclick="sortBy('community')">Community avg <span class="sort-arrow" id="h-community"></span></th>
+        <th onclick="sortBy('pct')">Depth <span class="sort-arrow" id="h-pct"></span></th>
+        <th onclick="sortBy('rating')">Rating <span class="sort-arrow" id="h-rating"></span></th>
+        <th onclick="sortBy('verdict')">Verdict <span class="sort-arrow" id="h-verdict"></span></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="noResults" class="no-results" style="display:none">No games match your search.</div>
+</div>
+
+<script>
+const GAMES = [
+  ["The Binding of Isaac: Rebirth","roguelike",745.3,35,96.2],
+  ["Path of Exile","arpg",477.0,90,88.1],
+  ["Path of Exile 2","arpg",446.5,90,72.4],
+  ["Satisfactory","factory",482.3,55,96.2],
+  ["The Elder Scrolls V: Skyrim","story",347.0,35,91.4],
+  ["ARK: Survival Evolved","sandbox",312.4,100,82.8],
+  ["Terraria","sandbox",253.9,35,96.7],
+  ["Crossout","action",196.9,60,74.3],
+  ["EVE Online","mmo",170.8,500,72.5],
+  ["Stellaris","strategy",216.3,100,84.2],
+  ["Alchemy Factory","factory",119.2,20,86.2],
+  ["Last Epoch","arpg",117.7,50,75.8],
+  ["Rogue: Genesia","roguelike",100.1,25,88.2],
+  ["Hades II","roguelike",93.9,20,94.3],
+  ["Death Must Die","roguelike",90.4,15,88.5],
+  ["Clicker Heroes","roguelike",88.9,0,88.2],
+  ["Hellpoint","soulslike",84.2,20,71],
+  ["Dark Souls III","soulslike",81.4,35,93.5],
+  ["Elden Ring","soulslike",74.0,55,92.4],
+  ["The Elder Scrolls Online","mmo",70.5,200,80.2],
+  ["Divinity: Original Sin 2","rpg",69.3,60,94.6],
+  ["FINAL FANTASY XV","jrpg",68.1,30,82],
+  ["Hades","roguelike",58.7,20,97],
+  ["Fallout 4","story",58.1,27,80.5],
+  ["7 Days to Die","sandbox",59.9,60,86.4],
+  ["Dyson Sphere Program","factory",59.5,50,96],
+  ["Valheim","sandbox",53.9,30,93.3],
+  ["Brotato","roguelike",51.1,10,95.2],
+  ["20 Minutes Till Dawn","roguelike",51.0,8,89],
+  ["Vampire Survivors","roguelike",60.2,15,97.2],
+  ["FINAL FANTASY XII THE ZODIAC AGE","jrpg",37.4,60,87],
+  ["They Are Billions","strategy",38.5,30,83.8],
+  ["Remnant: From the Ashes","action",36.7,25,83.1],
+  ["No Man's Sky","sandbox",35.1,35,84.1],
+  ["RimWorld","sandbox",50.2,100,96.7],
+  ["Timberborn","strategy",37.2,30,93.9],
+  ["The Planet Crafter","sandbox",43.1,30,94.4],
+  ["Solasta: Crown of the Magister","rpg",49.1,30,85.1],
+  ["Soulstone Survivors","roguelike",47.4,20,89.5],
+  ["Apocalypse Party","roguelike",47.0,15,71.9],
+  ["Tiny Rogues","roguelike",51.4,15,93.6],
+  ["Oxygen Not Included","sandbox",27.4,60,95.5],
+  ["Halls of Torment","roguelike",29.1,15,93.5],
+  ["Spirit Hunters: Infinite Horde","roguelike",28.5,12,75.8],
+  ["We Who Are About To Die","roguelike",30.7,15,85.6],
+  ["BALL x PIT","roguelike",52.5,15,93.4],
+  ["Outer Wilds","story",28.7,15,94.2],
+  ["Slay the Spire","roguelike",30.2,20,96.4],
+  ["V Rising","action",28.7,30,87.8],
+  ["Factorio","factory",29.2,45,96],
+  ["Grim Dawn","arpg",29.2,40,92.4],
+  ["XCOM 2","strategy",23.4,40,83.5],
+  ["Balatro","roguelike",23.7,15,96.7],
+  ["Remnant II","action",62.8,40,81.4],
+  ["Dying Light","action",22.5,17,94.3],
+  ["Magicraft","roguelike",30.4,15,90.4],
+  ["Spell Disk","roguelike",21.7,15,84.4],
+  ["PAYDAY 2","action",19.8,35,88.6],
+  ["CODE VEIN","soulslike",19.7,25,82.2],
+  ["Noita","roguelike",12.5,25,93.8],
+  ["Dead Cells","roguelike",18.1,14,95.8],
+  ["Monster Train 2","roguelike",16.6,25,92.6],
+  ["Stardew Valley","sandbox",17.6,52,97.7],
+  ["Expeditions: Viking","rpg",16.2,35,80.6],
+  ["Inscryption","story",16.2,12,95.6],
+  ["Spellcaster University","strategy",16.4,15,80.1],
+  ["Cities: Skylines","sandbox",15.8,100,91.9],
+  ["Middle-earth: Shadow of War","action",18.6,30,87.7],
+  ["Have a Nice Death","roguelike",20.5,12,83.8],
+  ["Lord of the Rings: Return to Moria","sandbox",17.3,20,79.9],
+  ["The Witcher 3: Wild Hunt","story",10.8,53,95.4],
+  ["Astral Ascent","roguelike",6.8,12,91.8],
+  ["S.T.A.L.K.E.R.: Shadow of Chernobyl","story",3.7,25,92.7],
+  ["Project Zomboid","sandbox",5.2,50,93.2],
+  ["Risk of Rain 2","roguelike",9.5,25,92.8],
+  ["Horizon Zero Dawn","story",6.1,25,86.9],
+  ["Conan Exiles","sandbox",9.8,60,78.1],
+  ["Enter the Gungeon","roguelike",4.3,30,93.8],
+  ["FTL: Faster Than Light","roguelike",5.4,10,93.6],
+  ["Windblown","roguelike",3.9,20,86.9],
+  ["Core Keeper","sandbox",2.3,30,91.4],
+  ["Neon Abyss","roguelike",1.0,12,84.2],
+  ["Skul: The Hero Slayer","roguelike",9.3,18,91.7],
+  ["Sekiro: Shadows Die Twice","soulslike",1.3,30,94.3],
+  ["Red Dead Redemption 2","story",0.68,50,91.6],
+  ["Withering Rooms","story",8.6,12,90.4],
+  ["The Spell Brigade","roguelike",4.3,10,82.4],
+  ["Minishoot Adventures","action",6.1,8,94.5],
+  ["Army of Ruin","roguelike",39.1,12,85],
+  ["God Of Weapons","roguelike",33.8,12,81.9],
+  ["Grind Survivors","roguelike",14.5,10,69.9],
+  ["Hero Siege","arpg",10.3,20,66.6],
+  ["Kerbal Space Program","sandbox",5.9,60,94],
+  ["Astro Prospector","roguelike",2.5,6,89.3],
+  ["Wizard of Legend","roguelike",3.6,8,88.6],
+  ["Night Swarm","roguelike",4.0,8,75.9],
+  ["Wall World","roguelike",5.0,10,88.6],
+  ["Dome Keeper","roguelike",0.15,8,90.1],
+  ["Necesse","sandbox",14.0,30,91.2],
+  ["Nomad Survival","roguelike",22.1,10,80.8],
+  ["Curious Expedition 2","roguelike",4.1,15,86],
+  ["9 Kings","roguelike",16.6,15,90.8],
+  ["Mortal Kombat X","action",5.3,12,84.7],
+  ["Wartales","rpg",3.2,60,85.2],
+  ["Slasher's Keep","roguelike",5.9,10,79.7],
+  ["Deep Rock Galactic: Survivor","roguelike",10.9,15,85.2],
+  ["Dungeon of the ENDLESS","strategy",5.5,12,83.4],
+  ["Darkest Dungeon","roguelike",10.7,25,90.6],
+  ["Ring of Pain","roguelike",3.4,8,88.4],
+  ["Striving for Light","roguelike",7.1,15,74.1],
+  ["Cultivation Story: Reincarnation","sandbox",4.4,40,88],
+  ["He is Coming","roguelike",5.7,8,82.1],
+  ["Slots & Daggers","roguelike",3.6,8,91.2],
+  ["Borderlands 3","action",1.0,35,80.1],
+  ["Mortal Shell","soulslike",2.2,12,66.6],
+  ["Greedland","roguelike",13.4,12,80.7],
+  ["The Surge 2","soulslike",1.2,20,74.2],
+  ["Shadow of the Depth","roguelike",12.8,15,67.2],
+  ["Yet Another Zombie Survivors","roguelike",6.4,12,88.8],
+  ["FINAL FANTASY X/X-2 HD Remaster","jrpg",8.3,60,86.8],
+  ["Lootun","roguelike",11.5,20,88],
+  ["FatalZone","roguelike",8.8,15,65.7],
+  ["CloverPit","roguelike",19.6,10,88.3],
+  ["Starbound","sandbox",16.9,20,91],
+  ["Plague Inc: Evolved","strategy",4.3,8,92.7],
+  ["Maktala","roguelike",4.2,8,77],
+  ["UnderMine","roguelike",1.5,12,87.8],
+  ["Outward","rpg",4.1,35,71.7],
+  ["Pirates Outlaws","roguelike",10.5,12,78.5],
+  ["Keplerth","sandbox",9.1,30,81.7],
+  ["Survivors of the Dawn","roguelike",5.4,10,71.7],
+  ["Nordic Ashes","roguelike",7.7,10,85.6],
+  ["Conquest Dark","roguelike",7.4,10,86.4],
+  ["Mutagenic","roguelike",1.7,8,83],
+  ["Don't Starve","sandbox",3.6,15,95.2],
+  ["This War of Mine","story",1.1,8,91.5],
+  ["Space Engineers","sandbox",0.8,50,87.4],
+  ["Volcanoids","sandbox",0.93,15,80.6],
+  ["Fallout 76","story",1.3,35,71.4],
+  ["Monster Hunter Wilds","action",152.5,40,48.2],
+  ["Heretic's Fork","roguelike",2.2,10,82.3],
+  ["Lords Of The Fallen","soulslike",4.9,25,58.5],
+  ["Anima Gate of Memories","action",2.8,8,65.4],
+  ["Devil Slayer - Raksasi","roguelike",1.8,10,81.7],
+  ["Stacklands","strategy",12.3,8,94],
+  ["Journey to Incrementalia","roguelike",15.7,15,82.6],
+  ["Saints Row IV","action",1.9,12,86.4],
+  ["Hand of Fate","rpg",0.77,8,86.8],
+  ["Streets of Rogue","roguelike",0.85,15,93.8],
+  ["Aragami","action",0.67,8,87.7],
+  ["RAD","roguelike",0.75,8,71.1],
+  ["Solium Infernum","strategy",4.3,15,84.1],
+  ["My Time at Sandrock","sandbox",4.5,40,86.4],
+  ["ENDLESS Space 2","strategy",1.0,50,81.7],
+  ["ENDLESS Legend","strategy",1.2,35,81.8],
+  ["Galactic Civilizations III","strategy",0.37,30,75],
+  ["Dream Engines: Nomad Cities","strategy",1.5,20,70.3],
+  ["Ancestors: The Humankind Odyssey","sandbox",1.1,15,77.1],
+  ["BioShock 2 Remastered","story",0.17,12,70.6],
+  ["Need for Speed Heat","action",7.2,18,83.2],
+  ["Disfigure","roguelike",37.4,15,94.3],
+  ["PowerWash Simulator 2","relaxing",51.1,10,92],
+  ["Ravenswatch","roguelike",0,12,80],
+  ["Dishonored","story",0.75,15,96.1],
+  ["Empires of the Undergrowth","strategy",0,15,94],
+  ["Noob: les Sans-Factions","rpg",2.6,20,78.1],
+  ["Mortal Shell","soulslike",2.2,12,66.6],
+  ["Graveyard Keeper","sandbox",20.7,30,84.6],
+  ["Zombidle: REMONSTERED","roguelike",69.8,20,81.7],
+  ["Idle Champions","rpg",51.1,0,75.6],
+  ["Dorfromantik","strategy",0,10,97],
+  ["The Witcher 2","story",0,20,88.2],
+  ["Fallout 3","story",0,27,80.4],
+  ["Fallout 2","story",0,20,91.6],
+  ["Fallout","story",0,15,92.1],
+  ["BioShock","story",0,12,92.1],
+  ["BioShock Infinite","story",0,14,92.3],
+  ["Left 4 Dead 2","action",0,15,96.8],
+  ["Dragon Age: Origins","rpg",0.65,40,89.2],
+  ["FINAL FANTASY VII (2013)","jrpg",0,15,90.9],
+  ["S.T.A.L.K.E.R.: Call of Pripyat","story",0,25,93.3],
+  ["S.T.A.L.K.E.R.: Clear Sky","story",0,20,83.4],
+  ["Expeditions: Conquistador","strategy",0,20,75.9],
+  ["PROTOTYPE 2","action",0,14,75.1],
+  ["Warhammer 40k: Inquisitor Prophecy","action",0,30,77],
+  ["Warhammer 40k: Inquisitor Martyr","action",0,40,74.8],
+  ["Chernobylite","story",0,20,80.1],
+  ["Expeditions: Rome","rpg",0,30,85],
+  ["Grand Theft Auto V","action",1.4,50,80.9],
+  ["AI War 2","strategy",0,30,83.7],
+  ["Hand of Fate 2","rpg",0,12,81.8],
+  ["BioShock Remastered","story",0,12,81.6],
+  ["Medieval Dynasty","sandbox",0,40,88.9],
+  ["Hell Clock","arpg",93.2,0,80.84],
+  ["Oaken Tower","roguelike",41.0,0,87.93],
+  ["Megabonk","roguelike",25.4,0,93.08],
+  ["Craftopia","sandbox",15.1,0,73.34],
+  ["Monster Hunter World","action",12.5,0,87.45],
+  ["The Last Man Survivor","roguelike",12.5,0,65.73],
+  ["Striving for Light: Survival","roguelike",10.4,0,71.42],
+  ["Pesticide Not Required","roguelike",10.1,0,88.45],
+  ["Gamblers Table","roguelike",9.1,0,70.83],
+  ["Cube World","sandbox",8.7,0,37.21],
+  ["Widget Inc.","strategy",7.8,0,80.46],
+  ["Skigill","roguelike",7.6,0,71.3],
+  ["Wizard with a Gun","action",7.0,0,77.86],
+  ["Curious Expedition","roguelike",7.0,0,87.92],
+  ["Time Wasters","roguelike",6.3,0,84.7],
+  ["Among Us","action",6.2,0,91.28],
+];
+
+// Real EUR paid, from purchase history (after discounts). FX: ~38\u0e3f/\u20ac, ~0.62\u20ac/A$. Carts split evenly; same-game DLC folded in.
+// Path of Exile value = in-game/MTX spend (point packs); base game is free.
+const PRICES = {"The Binding of Isaac: Rebirth": 12.99, "Path of Exile": 94.44, "Path of Exile 2": 27.75, "Satisfactory": 7.97, "The Elder Scrolls V: Skyrim": 19.99, "ARK: Survival Evolved": 10.06, "Terraria": 9.99, "Crossout": "free", "EVE Online": "free", "Stellaris": 3.21, "Alchemy Factory": 17.49, "Last Epoch": 17.88, "Rogue: Genesia": 2.23, "Hades II": 28.99, "Death Must Die": 3.67, "Clicker Heroes": "free", "Hellpoint": 11.02, "Dark Souls III": 13.81, "Elden Ring": 39.19, "The Elder Scrolls Online": 39.99, "Divinity: Original Sin 2": 11.82, "FINAL FANTASY XV": 22.21, "Hades": 9.31, "Fallout 4": 6.21, "7 Days to Die": 2.52, "Dyson Sphere Program": 6.84, "Valheim": 5.7, "Brotato": 5.1, "20 Minutes Till Dawn": 3.02, "Vampire Survivors": 1.49, "FINAL FANTASY XII THE ZODIAC AGE": 8.77, "They Are Billions": null, "Remnant: From the Ashes": 18.38, "No Man's Sky": 13.79, "RimWorld": 30.97, "Timberborn": 13.02, "The Planet Crafter": 23.99, "Solasta: Crown of the Magister": 7.43, "Soulstone Survivors": 5.79, "Apocalypse Party": 4.99, "Tiny Rogues": 3.81, "Oxygen Not Included": 2.65, "Halls of Torment": 3.68, "Spirit Hunters: Infinite Horde": 4.71, "We Who Are About To Die": 21.99, "BALL x PIT": 13.49, "Outer Wilds": 12.93, "Slay the Spire": 8.77, "V Rising": 34.99, "Factorio": 32.0, "Grim Dawn": 4.45, "XCOM 2": 4.45, "Balatro": 8.28, "Remnant II": 12.93, "Dying Light": 2.65, "Magicraft": 10.31, "Spell Disk": 9.61, "PAYDAY 2": 20.16, "CODE VEIN": 6.99, "Noita": 9.31, "Dead Cells": 8.18, "Monster Train 2": 16.87, "Stardew Valley": 8.28, "Expeditions: Viking": 3.56, "Inscryption": 10.23, "Spellcaster University": 8.39, "Cities: Skylines": 3.1, "Middle-earth: Shadow of War": 5.26, "Have a Nice Death": 7.46, "Lord of the Rings: Return to Moria": 14.7, "The Witcher 3: Wild Hunt": 12.04, "Astral Ascent": 8.39, "S.T.A.L.K.E.R.: Shadow of Chernobyl": 3.85, "Project Zomboid": 7.6, "Risk of Rain 2": 2.5, "Horizon Zero Dawn": 9.31, "Conan Exiles": 12.04, "Enter the Gungeon": 13.33, "FTL: Faster Than Light": 2.24, "Windblown": null, "Core Keeper": 5.18, "Neon Abyss": 6.63, "Skul: The Hero Slayer": 7.6, "Sekiro: Shadows Die Twice": 8.25, "Red Dead Redemption 2": 9.31, "Withering Rooms": 24.99, "The Spell Brigade": 8.77, "Minishoot Adventures": 14.99, "Army of Ruin": 4.71, "God Of Weapons": 3.13, "Grind Survivors": 8.88, "Hero Siege": 0.48, "Kerbal Space Program": 4.17, "Astro Prospector": 4.99, "Wizard of Legend": 6.99, "Night Swarm": 7.45, "Wall World": 4.45, "Dome Keeper": 4.45, "Necesse": 8.77, "Nomad Survival": 2.5, "Curious Expedition 2": 4.99, "9 Kings": 9.74, "Mortal Kombat X": 8.77, "Wartales": 19.24, "Slasher's Keep": 13.99, "Deep Rock Galactic: Survivor": 5.21, "Dungeon of the ENDLESS": 12.01, "Darkest Dungeon": 2.65, "Ring of Pain": 6.84, "Striving for Light": 17.49, "Cultivation Story: Reincarnation": 8.63, "He is Coming": 9.74, "Slots & Daggers": 6.95, "Borderlands 3": 2.98, "Mortal Shell": 9.31, "Greedland": 4.39, "The Surge 2": 8.6, "Shadow of the Depth": 13.31, "Yet Another Zombie Survivors": 4.63, "FINAL FANTASY X/X-2 HD Remaster": 7.87, "Lootun": 2.05, "FatalZone": 2.31, "CloverPit": 6.95, "Starbound": 3.31, "Plague Inc: Evolved": 8.28, "Maktala": 4.49, "UnderMine": 6.21, "Outward": 4.45, "Pirates Outlaws": 5.1, "Keplerth": 4.71, "Survivors of the Dawn": 6.16, "Nordic Ashes": 8.99, "Conquest Dark": 9.75, "Mutagenic": 0.99, "Don't Starve": 17.89, "This War of Mine": 2.3, "Space Engineers": 4.45, "Volcanoids": 5.7, "Fallout 76": null, "Monster Hunter Wilds": 69.99, "Heretic's Fork": 4.09, "Lords Of The Fallen": 2.14, "Anima Gate of Memories": 2.91, "Devil Slayer - Raksasi": 4.45, "Stacklands": 2.6, "Journey to Incrementalia": 4.99, "Saints Row IV": 2.3, "Hand of Fate": 2.7, "Streets of Rogue": 4.87, "Aragami": 2.3, "RAD": 6.99, "Solium Infernum": 16.07, "My Time at Sandrock": 8.63, "ENDLESS Space 2": 12.01, "ENDLESS Legend": 12.01, "Galactic Civilizations III": 3.09, "Dream Engines: Nomad Cities": 9.31, "Ancestors: The Humankind Odyssey": 10.1, "BioShock 2 Remastered": 2.02, "Need for Speed Heat": 2.23, "Disfigure": "free", "PowerWash Simulator 2": 24.99, "Ravenswatch": "refunded", "Dishonored": null, "Empires of the Undergrowth": "refunded", "Noob: les Sans-Factions": null, "Graveyard Keeper": 3.13, "Zombidle: REMONSTERED": "free", "Idle Champions": "free", "Dorfromantik": null, "The Witcher 2": 12.04, "Fallout 3": 2.3, "Fallout 2": null, "Fallout": null, "BioShock": 2.02, "BioShock Infinite": 2.02, "Left 4 Dead 2": 2.3, "Dragon Age: Origins": 2.3, "FINAL FANTASY VII (2013)": 3.4, "S.T.A.L.K.E.R.: Call of Pripyat": 3.85, "S.T.A.L.K.E.R.: Clear Sky": 3.85, "Expeditions: Conquistador": 3.56, "PROTOTYPE 2": 8.25, "Warhammer 40k: Inquisitor Prophecy": "free", "Warhammer 40k: Inquisitor Martyr": 8.88, "Chernobylite": 6.16, "Expeditions: Rome": 3.56, "Grand Theft Auto V": 9.14, "AI War 2": 2.65, "Hand of Fate 2": 2.7, "BioShock Remastered": 2.02, "Medieval Dynasty": null, "Hell Clock": 17.55, "Oaken Tower": 7.99, "Megabonk": 8.28, "Craftopia": 6.99, "Monster Hunter World": 9.98, "The Last Man Survivor": 3.39, "Striving for Light: Survival": 3.02, "Pesticide Not Required": 3.37, "Gamblers Table": 4.89, "Cube World": null, "Widget Inc.": 4.99, "Skigill": 5.64, "Wizard with a Gun": 13.02, "Curious Expedition": 6.29, "Time Wasters": 4.09, "Among Us": 2.6};
+const MTX = ["Path of Exile"];
+
+const VERDICT_ORDER = {missed:0, try:1, good:2, power:3, na:4};
+
+function getVerdict(myH, commH, type) {
+  if(commH === 0) return 'na';
+  const pct = myH / commH;
+  const isOpenEnded = ['roguelike','sandbox','mmo','factory'].includes(type);
+  if(isOpenEnded) {
+    if(myH >= commH * 3) return 'power';
+    if(myH >= commH) return 'good';
+    if(myH >= commH * 0.3) return 'try';
+    return 'missed';
+  }
+  if(pct >= 3) return 'power';
+  if(pct >= 0.8) return 'good';
+  if(pct >= 0.25) return 'try';
+  return 'missed';
+}
+
+function getPct(myH, commH) {
+  if(commH === 0) return 999;
+  return myH / commH;
+}
+
+function fmtH(h) {
+  if(h === 0) return '—';
+  if(h < 1) return Math.round(h * 60) + 'm';
+  return h + 'h';
+}
+
+function verdictLabel(v) {
+  return {power:'⭐ Power user', good:'✅ Well explored', try:'🟡 Give more time', missed:'🔴 Barely touched', na:'— No data'}[v];
+}
+
+function verdictClass(v) {
+  return {power:'v-power', good:'v-good', try:'v-try', missed:'v-missed', na:'v-na'}[v];
+}
+
+function barColor(v) {
+  return {power:'#8b7fd4', good:'#3db87a', try:'#e0953a', missed:'#e05050', na:'#555f74'}[v];
+}
+
+const GAMES_PROC = (() => {
+  const seen = new Set();
+  return GAMES.filter(([name]) => {
+    if(seen.has(name)) return false;
+    seen.add(name);
+    return true;
+  }).map(([name, type, myH, commH, rating]) => {
+    const v = getVerdict(myH, commH, type);
+    const pct = getPct(myH, commH);
+    const raw = PRICES[name];
+    let paid = null, paidState = 'unknown';
+    if(raw === 'free'){ paid = 0; paidState = 'free'; }
+    else if(raw === 'refunded'){ paid = null; paidState = 'refunded'; }
+    else if(typeof raw === 'number'){ paid = raw; paidState = MTX.includes(name) ? 'mtx' : 'paid'; }
+    const eph = (paid !== null && myH > 0) ? paid / myH : null;
+    return {name, type, myH, commH, rating, v, pct, paid, paidState, eph};
+  });
+})();
+
+let currentFilter = 'all';
+let currentSearch = '';
+let sortCol = 'verdict';
+let sortDir = 1;
+
+function getData() {
+  return GAMES_PROC.filter(g => {
+    if(currentFilter !== 'all' && g.v !== currentFilter) return false;
+    if(currentSearch) {
+      const q = currentSearch.toLowerCase();
+      return g.name.toLowerCase().includes(q) || g.type.toLowerCase().includes(q);
+    }
+    return true;
+  }).sort((a, b) => {
+    if(sortCol === 'verdict') {
+      return sortDir * (VERDICT_ORDER[a.v] - VERDICT_ORDER[b.v]);
+    }
+    if(sortCol === 'name' || sortCol === 'type') {
+      return sortDir * a[sortCol].localeCompare(b[sortCol]);
+    }
+    const KEYMAP = {mine:'myH', community:'commH', pct:'pct', rating:'rating', paid:'paid', eph:'eph'};
+    const key = KEYMAP[sortCol] || sortCol;
+    return cmpNum(a[key], b[key], sortDir);
+  });
+}
+
+function fmtPaid(g){
+  if(g.paidState==='free') return '<span class="tag-free">Free</span>';
+  if(g.paidState==='refunded') return '<span class="tag-na" title="Bought then refunded">refunded</span>';
+  if(g.paidState==='unknown') return '<span class="tag-na" title="Not in purchase history (gift / family share / free weekend)">\u2014</span>';
+  if(g.paidState==='mtx') return g.paid.toFixed(2)+'\u20ac<span class="mtx-tag" title="In-game / microtransaction spend (base game is free-to-play)">\u25c6</span>';
+  return g.paid.toFixed(2)+'\u20ac';
+}
+function fmtEph(g){
+  if(g.eph===null) return '<span class="tag-na">\u2014</span>';
+  const v=g.eph;
+  const cls = v<0.5?'eph-great':(v<2?'eph-ok':'eph-bad');
+  return '<span class="'+cls+'">'+v.toFixed(2)+'\u20ac/h</span>';
+}
+function cmpNum(a,b,dir){
+  const an=(a===null||a===undefined), bn=(b===null||b===undefined);
+  if(an&&bn) return 0; if(an) return 1; if(bn) return -1;
+  return dir*(a-b);
+}
+function computeHeader(){
+  let spent=0, hours=0, ephSpent=0, ephHours=0;
+  GAMES_PROC.forEach(g=>{
+    if(g.paidState==='paid'||g.paidState==='mtx'){ spent+=g.paid; hours+=g.myH;
+      if(g.myH>0){ ephSpent+=g.paid; ephHours+=g.myH; } }
+  });
+  const avg = ephHours>0 ? (ephSpent/ephHours) : 0;
+  document.getElementById('s-eph').textContent = avg.toFixed(2)+'\u20ac';
+  document.getElementById('s-spent').textContent = Math.round(spent).toLocaleString('en-US')+'\u20ac';
+  document.getElementById('s-hours').textContent = Math.round(hours).toLocaleString('en-US')+'h';
+}
+
+function render(){
+  const data = getData();
+  const tbody = document.getElementById('tbody');
+  const noRes = document.getElementById('noResults');
+  document.getElementById('counter').textContent = `${data.length} games`;
+
+  if(data.length === 0) {
+    tbody.innerHTML = '';
+    noRes.style.display = 'block';
+    return;
+  }
+
+  noRes.style.display = 'none';
+  tbody.innerHTML = data.map(g => {
+    const pctNum = g.commH === 0 ? null : Math.round(g.pct * 100);
+    const barW = pctNum === null ? 0 : Math.min(pctNum / 3, 100);
+    const commDisp = g.commH === 0 ? '—' : g.commH + 'h';
+    const pctDisp = pctNum === null ? '—' : (pctNum > 999 ? '>999%' : pctNum + '%');
+    const ratingDisp = g.rating === 0 ? '—' : g.rating + '%';
+
+    return `<tr>
+      <td class="td-name">${g.name}</td>
+      <td><span class="td-type">${g.type}</span></td>
+      <td class="td-hours">${fmtH(g.myH)}</td>
+      <td class="td-paid">${fmtPaid(g)}</td>
+      <td class="td-eph">${fmtEph(g)}</td>
+      <td class="td-comm">${commDisp}</td>
+      <td>
+        <div class="depth-cell">
+          <span class="depth-pct">${pctDisp}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${barW}%;background:${barColor(g.v)}"></div></div>
+        </div>
+      </td>
+      <td class="td-rating">${ratingDisp}</td>
+      <td><span class="verdict-badge ${verdictClass(g.v)}">${verdictLabel(g.v)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.f === f);
+  });
+  render();
+}
+
+function doSearch(v) {
+  currentSearch = v;
+  render();
+}
+
+function sortBy(col) {
+  if(sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = (col === 'verdict' || col === 'eph' || col === 'paid') ? 1 : -1; }
+
+  const cols = ['name','type','mine','paid','eph','community','pct','rating','verdict'];
+  const map = {mine:'mine', paid:'paid', eph:'eph', community:'community', pct:'pct', rating:'rating', name:'name', type:'type', verdict:'verdict'};
+  cols.forEach(c => {
+    const el = document.getElementById('h-' + c);
+    if(el) el.textContent = '';
+  });
+  const hEl = document.getElementById('h-' + col);
+  if(hEl) hEl.textContent = sortDir === 1 ? '↑' : '↓';
+
+  document.querySelectorAll('thead th').forEach((th, i) => {
+    th.classList.toggle('sorted', cols[i] === col);
+  });
+
+  render();
+}
+
+// Initial render sorted by verdict
+render();
+computeHeader();
+sortBy('eph');
+</script>
+</body>
+</html>
