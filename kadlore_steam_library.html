@@ -374,7 +374,7 @@
 <div class="method-note">
   <b>Prices</b> = what you actually paid (after discounts), from your purchase history. ฿ converted at ~38฿/€, A$ at ~0.62€ — approximate era rates.
   Multi-game carts <b>split evenly</b>; same-game DLC folded in. <b>◆</b> = in-game/MTX spend (Path of Exile point packs; base game is free).
-  <b>Free</b> = free-to-play. <b>—</b> = not in your history (gift / family share). <b>€/hour = paid ÷ your hours</b>, lower is better. Hours from the Jul 2026 SteamDB snapshot.
+  <b>Free</b> = free-to-play. <b>—</b> = not in your history (gift / family share). <b>€/hour = paid ÷ your hours</b>, lower is better. Games under 1h show the price itself as €/hour (you never lose more than you paid). Hours from the Jul 2026 SteamDB snapshot.
 </div>
 
 <div class="controls">
@@ -685,7 +685,7 @@ const GAMES_PROC = (() => {
     if(raw === 'free'){ paid = 0; paidState = 'free'; }
     else if(raw === 'refunded'){ paid = null; paidState = 'refunded'; }
     else if(typeof raw === 'number'){ paid = raw; paidState = MTX.includes(name) ? 'mtx' : 'paid'; }
-    const eph = (paid !== null && myH > 0) ? paid / myH : null;
+    const eph = (paid !== null && myH > 0) ? (myH < 1 ? paid : paid / myH) : null;
     return {name, type, myH, commH, rating, v, pct, paid, paidState, eph};
   });
 })();
