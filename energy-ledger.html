@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1319;
+    --panel:#161f28;
+    --panel-2:#1c2732;
+    --line:#2a3742;
+    --text:#e8eef3;
+    --muted:#8695a2;
+    --dim:#5f6e7a;
+    --food:#f2a836;      /* energy in */
+    --burn:#37d399;      /* energy out */
+    --gap:#4cc9f0;       /* the deficit */
+    --warn:#f2705d;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(76,201,240,.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.5;
+    padding:22px 16px 48px;
+    max-width:640px;
+    margin:0 auto;
+    min-height:100vh;
+  }
+  .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+
+  /* ---- header ---- */
+  header{margin-bottom:24px}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--gap);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--gap);display:inline-block}
+  h1{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:8px}
+
+  /* ---- controls ---- */
+  .controls{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 16px;
+    margin-bottom:20px;
+  }
+  .ctrl{margin-bottom:20px}
+  .ctrl:last-child{margin-bottom:0}
+  .ctrl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .ctrl-label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .ctrl-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;color:var(--text)}
+  .ctrl-val small{color:var(--dim);font-size:12px;font-weight:400}
+
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;
+    background:linear-gradient(90deg,var(--gap) 0%,var(--gap) var(--fill,25%),var(--panel-2) var(--fill,25%));
+    cursor:pointer;outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
+    background:var(--text);border:3px solid var(--gap);cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.4);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;background:var(--text);
+    border:3px solid var(--gap);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);
+  }
+  input[type=range]:focus-visible{outline:2px solid var(--gap);outline-offset:6px;border-radius:8px}
+
+  .seg{display:flex;gap:6px}
+  .seg button{
+    flex:1;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+    padding:9px 4px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--muted);cursor:pointer;transition:all .15s;
+  }
+  .seg button:hover{color:var(--text)}
+  .seg button.on{background:var(--burn);color:#08130d;border-color:var(--burn);font-weight:600}
+  .seg button:focus-visible{outline:2px solid var(--gap);outline-offset:2px}
+
+  .stepper{display:flex;align-items:center;gap:0;width:100%}
+  .stepper button{
+    width:42px;height:40px;flex:none;font-size:20px;font-family:'JetBrains Mono',monospace;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);cursor:pointer;
+  }
+  .stepper button:first-child{border-radius:9px 0 0 9px}
+  .stepper button:last-child{border-radius:0 9px 9px 0}
+  .stepper button:hover{background:var(--line)}
+  .stepper button:focus-visible{outline:2px solid var(--gap);outline-offset:-2px;z-index:1;position:relative}
+  .stepper input{
+    flex:1;text-align:center;height:40px;border:1px solid var(--line);border-left:none;border-right:none;
+    background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;
+    -moz-appearance:textfield;
+  }
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .stepper input:focus-visible{outline:2px solid var(--gap);outline-offset:-2px;z-index:1;position:relative}
+  .stepper .unit{padding:0 12px;color:var(--dim);font-size:12px;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
+  /* ---- compare cards ---- */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .day{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 14px;position:relative;overflow:hidden;
+  }
+  .day.active{border-color:var(--burn)}
+  .day-tag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .day-tag.bike{color:var(--burn)}
+  .day-note{font-size:11px;color:var(--dim);margin-bottom:14px;min-height:14px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:none}
+  .row .k{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .row .k::before{content:"";width:7px;height:7px;border-radius:2px;display:inline-block}
+  .row.in .k::before{background:var(--food)}
+  .row.out .k::before{background:var(--burn)}
+  .row .v{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500}
+  .net{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .net-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px}
+  .net-val{font-family:'JetBrains Mono',monospace;font-size:23px;font-weight:700;letter-spacing:-.02em}
+  .net-val.deficit{color:var(--gap)}
+  .net-val.surplus{color:var(--food)}
+  .net-val small{font-size:12px;font-weight:400;color:var(--dim);display:block;letter-spacing:0}
+
+  /* ---- balance bar (signature) ---- */
+  .balance{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 16px;margin-bottom:20px;
+  }
+  .balance h2{font-size:13px;font-weight:600;letter-spacing:.02em;margin-bottom:4px}
+  .balance .cap{font-size:12px;color:var(--muted);margin-bottom:16px}
+  .track{position:relative;height:46px;border-radius:10px;background:var(--panel-2);overflow:hidden;display:flex}
+  .bar-in{background:linear-gradient(90deg,rgba(242,168,54,.35),var(--food));height:100%;transition:width .5s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:12px}
+  .bar-out{background:linear-gradient(270deg,rgba(55,211,153,.35),var(--burn));height:100%;transition:width .5s cubic-bezier(.4,0,.2,1);margin-left:auto;display:flex;align-items:center;justify-content:flex-end;padding-right:12px}
+  .bar-txt{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#0d1319;white-space:nowrap}
+  .scale{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace}
+  .legend{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}
+  .legend span{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  /* ---- meaning strip ---- */
+  .meaning{
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:16px;
+  }
+  .meaning-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .stat .big{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--gap);letter-spacing:-.02em}
+  .stat .lbl{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+  .callout{font-size:13px;line-height:1.5;padding:12px 14px;border-radius:11px;background:rgba(76,201,240,.08);border:1px solid rgba(76,201,240,.2);color:#c9e9f5}
+  .callout.warn{background:rgba(242,112,93,.09);border-color:rgba(242,112,93,.28);color:#f6c2b8}
+  .callout b{color:#fff;font-weight:600}
+
+  footer{font-size:11.5px;color:var(--dim);line-height:1.6;padding:0 4px}
+  footer b{color:var(--muted);font-weight:600}
+
+  @media (max-width:420px){
+    .compare{grid-template-columns:1fr}
+    .meaning-grid{grid-template-columns:1fr}
+    h1{font-size:23px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Energy Ledger</div>
+    <h1>Calories in vs&nbsp;out</h1>
+    <p class="sub">The readout your bike doesn't show — rest day against a ride day, tuned to your profile. Move the dials; everything recalculates live.</p>
+  </header>
+
+  <section class="controls" aria-label="Your inputs">
+    <div class="ctrl">
+      <div class="ctrl-head">
+        <span class="ctrl-label">Ride duration</span>
+        <span class="ctrl-val num" id="durOut">30 <small>min</small></span>
+      </div>
+      <input type="range" id="dur" min="10" max="90" step="5" value="30" aria-label="Ride duration in minutes">
+      <div class="scale"><span>10</span><span>30</span><span>50</span><span>70</span><span>90</span></div>
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-head">
+        <span class="ctrl-label">Intensity</span>
+        <span class="ctrl-val" id="intOut" style="color:var(--burn)">Moderate</span>
+      </div>
+      <div class="seg" id="seg" role="group" aria-label="Ride intensity">
+        <button data-i="easy">Easy</button>
+        <button data-i="mod" class="on">Moderate</button>
+        <button data-i="hard">Hard</button>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-head"><span class="ctrl-label">Body weight</span></div>
+      <div class="stepper">
+        <button id="wDn" aria-label="Decrease weight">–</button>
+        <input type="number" id="wt" value="69" min="45" max="120" step="0.5" aria-label="Body weight in kilograms">
+        <button id="wUp" aria-label="Increase weight">+</button>
+        <span class="unit">kg</span>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-head"><span class="ctrl-label">Daily food intake</span></div>
+      <div class="stepper">
+        <button id="fDn" aria-label="Decrease intake">–</button>
+        <input type="number" id="food" value="1600" min="800" max="4000" step="50" aria-label="Daily food intake in calories">
+        <button id="fUp" aria-label="Increase intake">+</button>
+        <span class="unit">kcal</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="compare" aria-label="Rest day versus ride day">
+    <div class="day" id="restCard">
+      <div class="day-tag">Rest day</div>
+      <div class="day-note">No ride — just living</div>
+      <div class="row in"><span class="k">Eaten</span><span class="v num" id="rIn">1,600</span></div>
+      <div class="row out"><span class="k">Burned</span><span class="v num" id="rOut">1,932</span></div>
+      <div class="net">
+        <div class="net-label">Net</div>
+        <div class="net-val deficit num" id="rNet">−332<small id="rNetTxt">calorie deficit</small></div>
+      </div>
+    </div>
+
+    <div class="day active" id="bikeCard">
+      <div class="day-tag bike">Ride day</div>
+      <div class="day-note" id="bikeNote">30 min · moderate</div>
+      <div class="row in"><span class="k">Eaten</span><span class="v num" id="bIn">1,600</span></div>
+      <div class="row out"><span class="k">Burned</span><span class="v num" id="bOut">2,150</span></div>
+      <div class="net">
+        <div class="net-label">Net</div>
+        <div class="net-val deficit num" id="bNet">−550<small id="bNetTxt">calorie deficit</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="balance" aria-label="Energy balance on a ride day">
+    <h2>Ride-day balance</h2>
+    <p class="cap">Food pushes in from the left, your burn from the right. The gap between them is the deficit doing the work.</p>
+    <div class="track">
+      <div class="bar-in" id="barIn" style="width:43%"><span class="bar-txt">1,600 in</span></div>
+      <div class="bar-out" id="barOut" style="width:57%"><span class="bar-txt">2,150 out</span></div>
+    </div>
+    <div class="scale"><span>0</span><span id="scaleMax">2,150 kcal</span></div>
+    <div class="legend">
+      <span><i style="background:var(--food)"></i>Food in</span>
+      <span><i style="background:var(--burn)"></i>Total burn</span>
+      <span><i style="background:var(--gap)"></i>The gap = fat loss</span>
+    </div>
+  </section>
+
+  <section class="meaning" aria-label="What this means">
+    <div class="meaning-grid">
+      <div class="stat">
+        <div class="big num" id="wkFat">0.32</div>
+        <div class="lbl">kg of fat per week at this ride-day deficit</div>
+      </div>
+      <div class="stat">
+        <div class="big num" id="toGoal">10</div>
+        <div class="lbl">weeks to shed 3.3 kg (your December target)</div>
+      </div>
+    </div>
+    <div class="callout" id="callout">Steady and sustainable. This gap comes from the bike, not from eating less — exactly where you want it.</div>
+  </section>
+
+  <footer>
+    <b>How this is worked out.</b> Resting burn uses the Mifflin-St Jeor equation for your profile (172&nbsp;cm, 32&nbsp;yr) × a light-daily-activity factor. Ride calories use standard MET values for stationary cycling at each intensity, counted on top of resting burn so nothing is double-added. Weekly fat loss assumes ~7,700&nbsp;kcal per kg. These are solid estimates, not lab readings — treat them as a guide and trust the multi-week trend on your scale and waist tape over any single number.
+  </footer>
+
+<script>
+(function(){
+  var HEIGHT=172, AGE=32;
+  var MET={easy:3.5, mod:6.0, hard:7.8};       // net METs (above resting)
+  var LABEL={easy:"Easy", mod:"Moderate", hard:"Hard"};
+  var state={dur:30, intensity:"mod", wt:69, food:1600};
+
+  var $=function(id){return document.getElementById(id)};
+  function fmt(n){return Math.round(n).toLocaleString('en-US')}
+
+  function bmr(w){return 10*w + 6.25*HEIGHT - 5*AGE + 5;}
+  function sedentary(w){return bmr(w)*1.2;}
+  function rideCals(w,intensity,min){return MET[intensity]*3.5*w/200*min;}
+
+  function render(){
+    var rest=sedentary(state.wt);
+    var ride=rideCals(state.wt,state.intensity,state.dur);
+    var bikeBurn=rest+ride;
+
+    var rNet=state.food-rest;      // negative = deficit
+    var bNet=state.food-bikeBurn;
+
+    // rest card
+    $('rIn').textContent=fmt(state.food);
+    $('rOut').textContent=fmt(rest);
+    setNet($('rNet'),$('rNetTxt'),rNet);
+
+    // bike card
+    $('bIn').textContent=fmt(state.food);
+    $('bOut').textContent=fmt(bikeBurn);
+    setNet($('bNet'),$('bNetTxt'),bNet);
+    $('bikeNote').textContent=state.dur+" min · "+LABEL[state.intensity].toLowerCase();
+
+    // balance bar (scaled to the larger of in/out on a ride day)
+    var maxV=Math.max(state.food,bikeBurn);
+    $('barIn').style.width=(state.food/maxV*100)+"%";
+    $('barOut').style.width=(bikeBurn/maxV*100)+"%";
+    $('barIn').querySelector('.bar-txt').textContent=fmt(state.food)+" in";
+    $('barOut').querySelector('.bar-txt').textContent=fmt(bikeBurn)+" out";
+    $('scaleMax').textContent=fmt(maxV)+" kcal";
+
+    // meaning
+    var deficit = bNet<0 ? -bNet : 0;
+    var wkFat = deficit*7/7700;
+    $('wkFat').textContent = wkFat.toFixed(2);
+    if(wkFat>0.01){
+      var wks=Math.ceil(3.3/wkFat);
+      $('toGoal').textContent = wks>200 ? "—" : wks;
+    } else {
+      $('toGoal').textContent="—";
+    }
+
+    // guidance callout
+    var c=$('callout');
+    c.className="callout";
+    if(state.food<1500){
+      c.classList.add('warn');
+      c.innerHTML='<b>Careful — that intake is low for you.</b> Your pitfall has always been eating too little. A bigger gap from less food costs muscle and energy, not just fat. Let the bike make the deficit.';
+    } else if(deficit>750){
+      c.classList.add('warn');
+      c.innerHTML='<b>That gap is on the large side.</b> Faster isn\'t better here — for a 3&nbsp;kg goal over 14 weeks, a gentler deficit protects muscle and the ankle. No need to push this hard.';
+    } else if(deficit<150){
+      c.innerHTML='<b>Barely a deficit right now.</b> Add a little duration or intensity, and fat loss picks up — while your food stays exactly where it is.';
+    } else {
+      c.innerHTML='Steady and sustainable. This gap comes from <b>the bike, not from eating less</b> — exactly where you want it.';
+    }
+  }
+
+  function setNet(el,txtEl,net){
+    var deficit=net<0;
+    var val=Math.abs(net);
+    el.className="net-val num "+(deficit?"deficit":"surplus");
+    el.childNodes[0].nodeValue=(deficit?"−":"+")+fmt(val);
+    txtEl.textContent=deficit?"calorie deficit":"calorie surplus";
+  }
+
+  // duration slider
+  var dur=$('dur');
+  function paintSlider(){
+    var pct=(dur.value-dur.min)/(dur.max-dur.min)*100;
+    dur.style.setProperty('--fill',pct+"%");
+  }
+  dur.addEventListener('input',function(){
+    state.dur=+dur.value;
+    $('durOut').innerHTML=dur.value+' <small>min</small>';
+    paintSlider();render();
+  });
+
+  // intensity segments
+  $('seg').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b)return;
+    state.intensity=b.dataset.i;
+    [].forEach.call(this.querySelectorAll('button'),function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    $('intOut').textContent=LABEL[state.intensity];
+    render();
+  });
+
+  // steppers
+  function bindStepper(inputId,dnId,upId,key,step,min,max){
+    var inp=$(inputId);
+    function clamp(v){return Math.min(max,Math.max(min,v))}
+    function commit(v){v=clamp(v);inp.value=v;state[key]=v;render();}
+    $(dnId).addEventListener('click',function(){commit((+inp.value||min)-step)});
+    $(upId).addEventListener('click',function(){commit((+inp.value||min)+step)});
+    inp.addEventListener('input',function(){var v=+inp.value; if(!isNaN(v))state[key]=clamp(v),render();});
+    inp.addEventListener('blur',function(){commit(+inp.value||min)});
+  }
+  bindStepper('wt','wDn','wUp','wt',0.5,45,120);
+  bindStepper('food','fDn','fUp','food',50,800,4000);
+
+  paintSlider();
+  render();
+})();
+</script>
+</body>
+</html>
